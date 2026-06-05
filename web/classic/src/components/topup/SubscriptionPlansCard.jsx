@@ -31,7 +31,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { API, showError, showSuccess, renderQuota } from '../../helpers';
-import { getCurrencyConfig } from '../../helpers/render';
+import { getCurrencyConfig, renderTokenQuota } from '../../helpers/render';
 import { RefreshCw, Sparkles } from 'lucide-react';
 import SubscriptionPurchaseModal from './modals/SubscriptionPurchaseModal';
 import {
@@ -380,6 +380,7 @@ const SubscriptionPlansCard = ({
                 <div className='max-h-64 overflow-y-auto pr-1 semi-table-body'>
                   {allSubscriptions.map((sub, subIndex) => {
                     const isLast = subIndex === allSubscriptions.length - 1;
+                    const { type: quotaDisplayType } = getCurrencyConfig();
                     const subscription = sub.subscription;
                     const totalAmount = Number(subscription?.amount_total || 0);
                     const usedAmount = Number(subscription?.amount_used || 0);
@@ -453,15 +454,11 @@ const SubscriptionPlansCard = ({
                         <div className='text-xs text-gray-500 mb-2'>
                           {t('总额度')}:{' '}
                           {totalAmount > 0 ? (
-                            <Tooltip
-                              content={`${t('原生额度')}：${usedAmount}/${totalAmount} · ${t('剩余')} ${remainAmount}`}
-                            >
-                              <span>
-                                {renderQuota(usedAmount)}/
-                                {renderQuota(totalAmount)} · {t('剩余')}{' '}
-                                {renderQuota(remainAmount)}
-                              </span>
-                            </Tooltip>
+                            <span>
+                              {renderQuota(usedAmount)}/
+                              {renderQuota(totalAmount)} · {t('剩余')}{' '}
+                              {renderQuota(remainAmount)}
+                            </span>
                           ) : (
                             t('不限')
                           )}
@@ -471,6 +468,14 @@ const SubscriptionPlansCard = ({
                             </span>
                           )}
                         </div>
+                        {quotaDisplayType !== 'TOKENS' && (
+                            <div className='text-xs text-gray-400 mb-2'>
+                              {'Token'}:{' '}
+                              {totalAmount > 0
+                                ? `${renderTokenQuota(remainAmount)}/${renderTokenQuota(totalAmount)}`
+                                : t('不限')}
+                            </div>
+                          )}
                         {!isLast && <Divider margin={12} />}
                       </div>
                     );
@@ -490,13 +495,13 @@ const SubscriptionPlansCard = ({
               {plans.map((p, index) => {
                 const plan = p?.plan;
                 const totalAmount = Number(plan?.total_amount || 0);
-                const { symbol, rate } = getCurrencyConfig();
+                const { symbol, rate, type: quotaDisplayType } = getCurrencyConfig();
                 const price = Number(plan?.price_amount || 0);
                 const convertedPrice = price * rate;
                 const displayPrice = convertedPrice.toFixed(
                   Number.isInteger(convertedPrice) ? 0 : 2,
                 );
-                const isPopular = index === 0 && plans.length > 1;
+                const isPopular = index === plans.length - 1 && plans.length > 1;
                 const limit = Number(plan?.max_purchase_per_user || 0);
                 const limitLabel = limit > 0 ? `${t('限购')} ${limit}` : null;
                 const totalLabel =
@@ -510,17 +515,19 @@ const SubscriptionPlansCard = ({
                   formatSubscriptionResetPeriod(plan, t) === t('不重置')
                     ? null
                     : `${t('额度重置')}: ${formatSubscriptionResetPeriod(plan, t)}`;
+                const tokenQuotaLabel =
+                  quotaDisplayType !== 'TOKENS'
+                    ? totalAmount > 0
+                      ? `${'Token'}: ${renderTokenQuota(totalAmount)}`
+                      : `${'Token'}: ${t('不限')}`
+                    : null;
                 const planBenefits = [
                   {
                     label: `${t('有效期')}: ${formatSubscriptionDuration(plan, t)}`,
                   },
                   resetLabel ? { label: resetLabel } : null,
-                  totalAmount > 0
-                    ? {
-                        label: totalLabel,
-                        tooltip: `${t('原生额度')}：${totalAmount}`,
-                      }
-                    : { label: totalLabel },
+                  { label: totalLabel },
+                  tokenQuotaLabel ? { label: tokenQuotaLabel } : null,
                   limitLabel ? { label: limitLabel } : null,
                   upgradeLabel ? { label: upgradeLabel } : null,
                 ].filter(Boolean);
@@ -529,14 +536,14 @@ const SubscriptionPlansCard = ({
                   <Card
                     key={plan?.id}
                     className={`!rounded-xl transition-all hover:shadow-lg w-full h-full ${
-                      isPopular ? 'ring-2 ring-purple-500' : ''
+                      isPopular ? 'ring-2 ring-purple-500 !overflow-visible' : ''
                     }`}
                     bodyStyle={{ padding: 0 }}
                   >
-                    <div className='p-4 h-full flex flex-col'>
+                    <div className='p-4 h-full flex flex-col relative overflow-visible'>
                       {/* 推荐标签 */}
                       {isPopular && (
-                        <div className='mb-2'>
+                        <div className='absolute -top-3 -right-3 z-10'>
                           <Tag color='purple' shape='circle' size='small'>
                             <Sparkles size={10} className='mr-1' />
                             {t('推荐')}

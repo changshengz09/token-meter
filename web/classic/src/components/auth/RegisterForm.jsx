@@ -101,6 +101,9 @@ const RegisterForm = () => {
     useState(false);
   const [wechatCodeSubmitLoading, setWechatCodeSubmitLoading] = useState(false);
   const [customOAuthLoading, setCustomOAuthLoading] = useState({});
+  const [usernameAvailable, setUsernameAvailable] = useState(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const usernameCheckTimerRef = useRef(null);
   const [disableButton, setDisableButton] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -173,6 +176,9 @@ const RegisterForm = () => {
       if (githubTimeoutRef.current) {
         clearTimeout(githubTimeoutRef.current);
       }
+      if (usernameCheckTimerRef.current) {
+        clearTimeout(usernameCheckTimerRef.current);
+      }
     };
   }, []);
 
@@ -213,6 +219,32 @@ const RegisterForm = () => {
 
   function handleChange(name, value) {
     setInputs((inputs) => ({ ...inputs, [name]: value }));
+    if (name === 'username') {
+      if (usernameCheckTimerRef.current) {
+        clearTimeout(usernameCheckTimerRef.current);
+      }
+      if (value.length < 3) {
+        setUsernameAvailable(null);
+        setCheckingUsername(false);
+        return;
+      }
+      setCheckingUsername(true);
+      setUsernameAvailable(null);
+      usernameCheckTimerRef.current = setTimeout(async () => {
+        try {
+          const res = await API.get(`/api/user/check-username?username=${encodeURIComponent(value)}`);
+          if (res.data.success) {
+            setUsernameAvailable(res.data.data.available);
+          } else {
+            setUsernameAvailable(null);
+          }
+        } catch {
+          setUsernameAvailable(null);
+        } finally {
+          setCheckingUsername(false);
+        }
+      }, 500);
+    }
   }
 
   async function handleSubmit(e) {
@@ -222,6 +254,10 @@ const RegisterForm = () => {
     }
     if (password !== password2) {
       showInfo('两次输入的密码不一致');
+      return;
+    }
+    if (usernameAvailable === false) {
+      showInfo('用户名已被占用，请更换用户名');
       return;
     }
     if (username && password) {
@@ -580,7 +616,22 @@ const RegisterForm = () => {
                   name='username'
                   onChange={(value) => handleChange('username', value)}
                   prefix={<IconUser />}
+                  suffix={
+                    checkingUsername ? (
+                      <Icon type='loading' spin />
+                    ) : usernameAvailable === true ? (
+                      <Icon type='tick_circle' style={{ color: 'var(--semi-color-success)' }} />
+                    ) : usernameAvailable === false ? (
+                      <Icon type='close_circle' style={{ color: 'var(--semi-color-danger)' }} />
+                    ) : null
+                  }
                 />
+                {usernameAvailable === false && (
+                  <Text type='danger' size='small'>{t('用户名已被占用')}</Text>
+                )}
+                {usernameAvailable === true && (
+                  <Text type='success' size='small'>{t('用户名可用')}</Text>
+                )}
 
                 <Form.Input
                   field='password'

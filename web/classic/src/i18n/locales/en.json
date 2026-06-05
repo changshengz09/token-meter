@@ -3177,6 +3177,8 @@
     "请输入状态页面的Slug，如：my-status": "Please enter the slug for the status page, such as: my-status",
     "请输入生成数量": "Please enter the quantity to generate",
     "请输入用户名": "Please enter username",
+    "用户名已被占用": "Username is already taken",
+    "用户名可用": "Username is available",
     "请输入私有部署地址，格式为：https://fastgpt.run/api/openapi": "Please enter private deployment address, format: https://fastgpt.run/api/openapi",
     "请输入秒数": "Please enter seconds",
     "请输入管理员密码": "Please enter the admin password",

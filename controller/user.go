@@ -135,6 +135,20 @@ func Logout(c *gin.Context) {
 	})
 }
 
+func CheckUsernameAvailability(c *gin.Context) {
+	username := c.Query("username")
+	if len(username) < 3 {
+		common.ApiErrorI18n(c, i18n.MsgUserInputInvalid, map[string]any{"Error": "username must be at least 3 characters"})
+		return
+	}
+	exist, err := model.CheckUserExistOrDeleted(username, "")
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, gin.H{"available": !exist})
+}
+
 func Register(c *gin.Context) {
 	if !common.RegisterEnabled {
 		common.ApiErrorI18n(c, i18n.MsgUserRegisterDisabled)

@@ -995,6 +995,12 @@ export function renderNumber(num) {
   }
 }
 
+// 将原生额度格式化为千分位数字，用于 Token额度 展示
+export function renderTokenQuota(quota) {
+  if (!quota || quota <= 0) return null;
+  return quota.toLocaleString();
+}
+
 export function renderQuotaNumberWithDigit(num, digits = 2) {
   if (typeof num !== 'number' || isNaN(num)) {
     return 0;

@@ -3554,6 +3554,8 @@
     "请输入生成数量": "Vui lòng nhập số lượng tạo",
     "请输入用户 ID": "Vui lòng nhập ID người dùng",
     "请输入用户名": "Vui lòng nhập tên người dùng",
+    "用户名已被占用": "Tên người dùng đã được sử dụng",
+    "用户名可用": "Tên người dùng có sẵn",
     "请输入用户名或邮箱": "Vui lòng nhập tên người dùng hoặc email",
     "请输入登录密码": "Vui lòng nhập mật khẩu đăng nhập",
     "请输入确认密码": "Vui lòng nhập mật khẩu xác nhận",
