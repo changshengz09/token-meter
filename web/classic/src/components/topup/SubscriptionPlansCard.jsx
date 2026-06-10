@@ -32,7 +32,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { API, showError, showSuccess, renderQuota } from '../../helpers';
 import { getCurrencyConfig, renderTokenQuota } from '../../helpers/render';
-import { RefreshCw, Sparkles } from 'lucide-react';
+import { RefreshCw, Sparkles, HelpCircle } from 'lucide-react';
 import SubscriptionPurchaseModal from './modals/SubscriptionPurchaseModal';
 import {
   formatSubscriptionDuration,
@@ -328,6 +328,42 @@ const SubscriptionPlansCard = ({
                 )}
               </div>
               <div className='flex items-center gap-2'>
+                <div className='flex items-center gap-1'>
+                  <Text type='tertiary' size='small' className='whitespace-nowrap'>
+                    {t('扣费方式')}
+                  </Text>
+                  <Tooltip
+                    content={
+                      <div className='text-xs leading-relaxed max-w-xs'>
+                        <div>
+                          {t('控制 API 调用时优先消耗哪种额度（账户级设置，对所有请求生效）。')}
+                        </div>
+                        <div className='mt-1'>
+                          · {t('优先订阅')}：
+                          {t('先用订阅额度，不足时自动扣钱包余额')}
+                        </div>
+                        <div>
+                          · {t('优先钱包')}：
+                          {t('先用钱包余额，不足时自动扣订阅额度')}
+                        </div>
+                        <div>
+                          · {t('仅用订阅')}：
+                          {t('只扣订阅额度，不足直接报错，不动钱包')}
+                        </div>
+                        <div>
+                          · {t('仅用钱包')}：
+                          {t('只扣钱包余额，不足直接报错，不动订阅')}
+                        </div>
+                      </div>
+                    }
+                    position='bottom'
+                  >
+                    <HelpCircle
+                      size={13}
+                      className='text-gray-400 cursor-help'
+                    />
+                  </Tooltip>
+                </div>
                 <Select
                   value={displayBillingPreference}
                   onChange={onChangeBillingPreference}
