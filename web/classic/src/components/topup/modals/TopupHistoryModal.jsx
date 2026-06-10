@@ -207,7 +207,9 @@ const TopupHistoryModal = ({ visible, onCancel, t }) => {
         title: t('支付金额'),
         dataIndex: 'money',
         key: 'money',
-        render: (money) => <Text type='danger'>¥{money.toFixed(2)}</Text>,
+        render: (money) => (
+          <Text type='danger'>{Number(money ?? 0).toFixed(2)}</Text>
+        ),
       },
       {
         title: t('状态'),

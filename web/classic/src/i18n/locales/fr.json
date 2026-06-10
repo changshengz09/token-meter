@@ -1185,6 +1185,7 @@
     "天": "Jour",
     "天前": "il y a des jours",
     "失败": "Échec",
+    "待支付": "En attente de paiement",
     "失败原因": "Raison de l'échec",
     "失败后不重试": "Pas de nouvelle tentative après échec",
     "失败后是否重试": "Réessayer après échec",

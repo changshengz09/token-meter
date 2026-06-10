@@ -1189,6 +1189,7 @@
     "天": "day",
     "天前": "days ago",
     "失败": "Failed",
+    "待支付": "Pending Payment",
     "失败原因": "Failure Reason",
     "失败后不重试": "No Retry on Failure",
     "失败后是否重试": "Retry on Failure",
