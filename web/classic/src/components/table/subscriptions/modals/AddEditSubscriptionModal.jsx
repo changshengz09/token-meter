@@ -29,6 +29,8 @@ import {
   SideSheet,
   Space,
   Spin,
+  Tabs,
+  TabPane,
   Tag,
   Typography,
 } from '@douyinfe/semi-ui';
@@ -64,6 +66,28 @@ const resetPeriodOptions = [
   { value: 'custom', label: '自定义(秒)' },
 ];
 
+// Whitelisted plan i18n languages, aligned with the frontend i18next locales
+// and the backend subscriptionLangs whitelist.
+const I18N_LANGS = [
+  { code: 'zh', label: '中文' },
+  { code: 'en', label: 'English' },
+  { code: 'fr', label: 'Français' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'ja', label: '日本語' },
+  { code: 'vi', label: 'Tiếng Việt' },
+];
+
+const parseI18nMap = (raw) => {
+  if (!raw) return {};
+  if (typeof raw === 'object') return raw;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
 const AddEditSubscriptionModal = ({
   visible,
   handleClose,
@@ -75,36 +99,52 @@ const AddEditSubscriptionModal = ({
   const [loading, setLoading] = useState(false);
   const [groupOptions, setGroupOptions] = useState([]);
   const [groupLoading, setGroupLoading] = useState(false);
+  const [activeLang, setActiveLang] = useState('default');
   const isMobile = useIsMobile();
   const formApiRef = useRef(null);
   const isEdit = editingPlan?.plan?.id !== undefined;
   const formKey = isEdit ? `edit-${editingPlan?.plan?.id}` : 'create';
 
-  const getInitValues = () => ({
-    title: '',
-    subtitle: '',
-    price_amount: 0,
-    currency: 'USD',
-    duration_unit: 'month',
-    duration_value: 1,
-    custom_seconds: 0,
-    quota_reset_period: 'never',
-    quota_reset_custom_seconds: 0,
-    enabled: true,
-    sort_order: 0,
-    max_purchase_per_user: 0,
-    total_amount: 0,
-    upgrade_group: '',
-    stripe_price_id: '',
-    creem_product_id: '',
-  });
+  const getInitValues = () => {
+    const base = {
+      title: '',
+      subtitle: '',
+      price_amount: 0,
+      currency: 'USD',
+      duration_unit: 'month',
+      duration_value: 1,
+      custom_seconds: 0,
+      quota_reset_period: 'never',
+      quota_reset_custom_seconds: 0,
+      enabled: true,
+      sort_order: 0,
+      max_purchase_per_user: 0,
+      total_amount: 0,
+      upgrade_group: '',
+      stripe_price_id: '',
+      creem_product_id: '',
+    };
+    I18N_LANGS.forEach(({ code }) => {
+      base[`title_i18n_${code}`] = '';
+      base[`subtitle_i18n_${code}`] = '';
+    });
+    return base;
+  };
 
   const buildFormValues = () => {
     const base = getInitValues();
     if (editingPlan?.plan?.id === undefined) return base;
     const p = editingPlan.plan || {};
+    const titleMap = parseI18nMap(p.title_i18n);
+    const subtitleMap = parseI18nMap(p.subtitle_i18n);
+    const langValues = {};
+    I18N_LANGS.forEach(({ code }) => {
+      langValues[`title_i18n_${code}`] = titleMap[code] || '';
+      langValues[`subtitle_i18n_${code}`] = subtitleMap[code] || '';
+    });
     return {
       ...base,
+      ...langValues,
       title: p.title || '',
       subtitle: p.subtitle || '',
       price_amount: Number(p.price_amount || 0),
@@ -128,6 +168,7 @@ const AddEditSubscriptionModal = ({
 
   useEffect(() => {
     if (!visible) return;
+    setActiveLang('default');
     setGroupLoading(true);
     API.get('/api/group')
       .then((res) => {
@@ -148,9 +189,24 @@ const AddEditSubscriptionModal = ({
     }
     setLoading(true);
     try {
+      const titleI18n = {};
+      const subtitleI18n = {};
+      I18N_LANGS.forEach(({ code }) => {
+        const tv = (values[`title_i18n_${code}`] || '').trim();
+        if (tv) titleI18n[code] = tv;
+        const sv = (values[`subtitle_i18n_${code}`] || '').trim();
+        if (sv) subtitleI18n[code] = sv;
+      });
+
+      const planValues = { ...values };
+      I18N_LANGS.forEach(({ code }) => {
+        delete planValues[`title_i18n_${code}`];
+        delete planValues[`subtitle_i18n_${code}`];
+      });
+
       const payload = {
         plan: {
-          ...values,
+          ...planValues,
           price_amount: Number(values.price_amount || 0),
           currency: 'USD',
           duration_value: Number(values.duration_value || 0),
@@ -164,6 +220,12 @@ const AddEditSubscriptionModal = ({
           max_purchase_per_user: Number(values.max_purchase_per_user || 0),
           total_amount: displayAmountToQuota(values.total_amount),
           upgrade_group: values.upgrade_group || '',
+          title_i18n:
+            Object.keys(titleI18n).length > 0 ? JSON.stringify(titleI18n) : '',
+          subtitle_i18n:
+            Object.keys(subtitleI18n).length > 0
+              ? JSON.stringify(subtitleI18n)
+              : '',
         },
       };
       if (editingPlan?.plan?.id) {
@@ -272,29 +334,93 @@ const AddEditSubscriptionModal = ({
                     </div>
                   </div>
 
+                  <div className='mb-4 rounded-xl border border-gray-200 p-3'>
+                    <div className='mb-2 flex items-center justify-between'>
+                      <Text className='text-sm font-medium'>
+                        {t('套餐标题 / 副标题')}
+                      </Text>
+                      <Tag size='small' color='light-blue' shape='circle'>
+                        {t('多语言')}
+                      </Tag>
+                    </div>
+                    <Tabs
+                      type='button'
+                      size='small'
+                      activeKey={activeLang}
+                      onChange={setActiveLang}
+                    >
+                      <TabPane tab={t('默认')} itemKey='default' />
+                      {I18N_LANGS.map(({ code, label }) => (
+                        <TabPane tab={label} itemKey={code} key={code} />
+                      ))}
+                    </Tabs>
+
+                    <div
+                      className='mt-2'
+                      style={{
+                        display: activeLang === 'default' ? 'block' : 'none',
+                      }}
+                    >
+                      <Row gutter={12}>
+                        <Col span={24}>
+                          <Form.Input
+                            field='title'
+                            label={t('套餐标题')}
+                            placeholder={t('例如：基础套餐')}
+                            required
+                            rules={[
+                              { required: true, message: t('请输入套餐标题') },
+                            ]}
+                            extraText={t(
+                              '作为默认值；某语言未单独填写时回退到此',
+                            )}
+                            showClear
+                          />
+                        </Col>
+
+                        <Col span={24}>
+                          <Form.Input
+                            field='subtitle'
+                            label={t('套餐副标题')}
+                            placeholder={t('例如：适合轻度使用')}
+                            showClear
+                          />
+                        </Col>
+                      </Row>
+                    </div>
+
+                    {I18N_LANGS.map(({ code, label }) => (
+                      <div
+                        key={code}
+                        className='mt-2'
+                        style={{
+                          display: activeLang === code ? 'block' : 'none',
+                        }}
+                      >
+                        <Row gutter={12}>
+                          <Col span={24}>
+                            <Form.Input
+                              field={`title_i18n_${code}`}
+                              label={`${t('套餐标题')} · ${label}`}
+                              placeholder={t('留空则使用默认值')}
+                              showClear
+                            />
+                          </Col>
+
+                          <Col span={24}>
+                            <Form.Input
+                              field={`subtitle_i18n_${code}`}
+                              label={`${t('套餐副标题')} · ${label}`}
+                              placeholder={t('留空则使用默认值')}
+                              showClear
+                            />
+                          </Col>
+                        </Row>
+                      </div>
+                    ))}
+                  </div>
+
                   <Row gutter={12}>
-                    <Col span={24}>
-                      <Form.Input
-                        field='title'
-                        label={t('套餐标题')}
-                        placeholder={t('例如：基础套餐')}
-                        required
-                        rules={[
-                          { required: true, message: t('请输入套餐标题') },
-                        ]}
-                        showClear
-                      />
-                    </Col>
-
-                    <Col span={24}>
-                      <Form.Input
-                        field='subtitle'
-                        label={t('套餐副标题')}
-                        placeholder={t('例如：适合轻度使用')}
-                        showClear
-                      />
-                    </Col>
-
                     <Col span={12}>
                       <Form.InputNumber
                         field='price_amount'

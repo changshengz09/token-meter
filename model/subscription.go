@@ -149,6 +149,11 @@ type SubscriptionPlan struct {
 	Title    string `json:"title" gorm:"type:varchar(128);not null"`
 	Subtitle string `json:"subtitle" gorm:"type:varchar(255);default:''"`
 
+	// i18n maps store per-language overrides as JSON, e.g. {"zh":"高级套餐","en":"Premium"}.
+	// Title/Subtitle remain the fallback source; missing languages fall back to them.
+	TitleI18n    string `json:"title_i18n" gorm:"type:text"`
+	SubtitleI18n string `json:"subtitle_i18n" gorm:"type:text"`
+
 	// Display money amount (follow existing code style: float64 for money)
 	PriceAmount float64 `json:"price_amount" gorm:"type:decimal(10,6);not null;default:0"`
 	Currency    string  `json:"currency" gorm:"type:varchar(8);not null;default:'USD'"`
@@ -199,6 +204,59 @@ func (p *SubscriptionPlan) NormalizeDefaults() {
 	if p.AllowBalancePay == nil {
 		p.AllowBalancePay = common.GetPointer(true)
 	}
+}
+
+// subscriptionLangs is the whitelist of languages the plan i18n fields accept,
+// aligned with the frontend i18next locales (web/default & web/classic).
+var subscriptionLangs = map[string]struct{}{
+	"zh": {}, "en": {}, "fr": {}, "ru": {}, "ja": {}, "vi": {},
+}
+
+// NormalizeSubscriptionLang maps an arbitrary language tag to a whitelisted plan
+// language code, or returns "" if unsupported. zh-CN/zh-TW collapse to zh.
+func NormalizeSubscriptionLang(lang string) string {
+	lang = strings.ToLower(strings.TrimSpace(lang))
+	if lang == "" {
+		return ""
+	}
+	if idx := strings.IndexAny(lang, "-_"); idx > 0 {
+		lang = lang[:idx]
+	}
+	if _, ok := subscriptionLangs[lang]; ok {
+		return lang
+	}
+	return ""
+}
+
+// IsSupportedSubscriptionLang reports whether code is an exact whitelisted code.
+func IsSupportedSubscriptionLang(code string) bool {
+	_, ok := subscriptionLangs[code]
+	return ok
+}
+
+func localizeFromI18nJSON(raw, fallback, lang string) string {
+	code := NormalizeSubscriptionLang(lang)
+	if code == "" || strings.TrimSpace(raw) == "" {
+		return fallback
+	}
+	m := map[string]string{}
+	if err := common.Unmarshal([]byte(raw), &m); err != nil {
+		return fallback
+	}
+	if v, ok := m[code]; ok && strings.TrimSpace(v) != "" {
+		return v
+	}
+	return fallback
+}
+
+// LocalizedTitle returns the title for lang, falling back to Title.
+func (p *SubscriptionPlan) LocalizedTitle(lang string) string {
+	return localizeFromI18nJSON(p.TitleI18n, p.Title, lang)
+}
+
+// LocalizedSubtitle returns the subtitle for lang, falling back to Subtitle.
+func (p *SubscriptionPlan) LocalizedSubtitle(lang string) string {
+	return localizeFromI18nJSON(p.SubtitleI18n, p.Subtitle, lang)
 }
 
 // Subscription order (payment -> webhook -> create UserSubscription)

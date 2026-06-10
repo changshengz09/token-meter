@@ -424,8 +424,12 @@ const SubscriptionPlansCard = ({
                       totalAmount > 0
                         ? Math.max(0, totalAmount - usedAmount)
                         : 0;
+                    // 优先后端按 lang 下发的本地化标题（停用套餐也能命中）；
+                    // 回退到在售套餐列表映射；都没有则留空，由下方兜底为「订阅 #id」。
                     const planTitle =
-                      planTitleMap.get(subscription?.plan_id) || '';
+                      sub?.plan_title ||
+                      planTitleMap.get(subscription?.plan_id) ||
+                      '';
                     const remainDays = getRemainingDays(sub);
                     const usagePercent = getUsagePercent(sub);
                     const now = Date.now() / 1000;

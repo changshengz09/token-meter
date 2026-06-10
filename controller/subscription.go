@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +18,14 @@ import (
 
 type SubscriptionPlanDTO struct {
 	Plan model.SubscriptionPlan `json:"plan"`
+}
+
+// SubscriptionSummaryDTO wraps a user subscription with its localized plan
+// title so the client doesn't have to cross-reference the in-sale plan list
+// (which also misses disabled/deleted plans).
+type SubscriptionSummaryDTO struct {
+	Subscription *model.UserSubscription `json:"subscription"`
+	PlanTitle    string                  `json:"plan_title"`
 }
 
 type BillingPreferenceRequest struct {
@@ -28,11 +38,44 @@ type SubscriptionBalancePayRequest struct {
 
 // ---- User APIs ----
 
+// sanitizeSubscriptionI18n validates a title/subtitle i18n JSON blob against the
+// language whitelist and returns a canonical form (only whitelisted keys, no empty
+// values). Empty input yields empty output. Unknown language keys are rejected.
+func sanitizeSubscriptionI18n(raw string) (string, error) {
+	if strings.TrimSpace(raw) == "" {
+		return "", nil
+	}
+	m := map[string]string{}
+	if err := common.Unmarshal([]byte(raw), &m); err != nil {
+		return "", errors.New("多语言内容格式错误")
+	}
+	clean := map[string]string{}
+	for k, v := range m {
+		if !model.IsSupportedSubscriptionLang(k) {
+			return "", errors.New("不支持的语言代码: " + k)
+		}
+		if strings.TrimSpace(v) == "" {
+			continue
+		}
+		clean[k] = v
+	}
+	if len(clean) == 0 {
+		return "", nil
+	}
+	b, err := common.Marshal(clean)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
 func GetSubscriptionPlans(c *gin.Context) {
 	if !operation_setting.IsPaymentComplianceConfirmed() {
 		common.ApiSuccess(c, []SubscriptionPlanDTO{})
 		return
 	}
+
+	lang := c.Query("lang")
 
 	var plans []model.SubscriptionPlan
 	if err := model.DB.Where("enabled = ?", true).Order("sort_order desc, id desc").Find(&plans).Error; err != nil {
@@ -42,6 +85,11 @@ func GetSubscriptionPlans(c *gin.Context) {
 	result := make([]SubscriptionPlanDTO, 0, len(plans))
 	for _, p := range plans {
 		p.NormalizeDefaults()
+		p.Title = p.LocalizedTitle(lang)
+		p.Subtitle = p.LocalizedSubtitle(lang)
+		// Don't leak the full per-language blob to the purchase page.
+		p.TitleI18n = ""
+		p.SubtitleI18n = ""
 		result = append(result, SubscriptionPlanDTO{
 			Plan: p,
 		})
@@ -49,8 +97,29 @@ func GetSubscriptionPlans(c *gin.Context) {
 	common.ApiSuccess(c, result)
 }
 
+// toSubscriptionSummaryDTOs attaches each subscription's localized plan title.
+// A missing plan (deleted) yields an empty title; the client falls back to
+// showing the subscription id. Disabled-but-present plans still localize.
+func toSubscriptionSummaryDTOs(items []model.SubscriptionSummary, lang string) []SubscriptionSummaryDTO {
+	result := make([]SubscriptionSummaryDTO, 0, len(items))
+	for _, it := range items {
+		title := ""
+		if it.Subscription != nil {
+			if plan, err := model.GetSubscriptionPlanById(it.Subscription.PlanId); err == nil && plan != nil {
+				title = plan.LocalizedTitle(lang)
+			}
+		}
+		result = append(result, SubscriptionSummaryDTO{
+			Subscription: it.Subscription,
+			PlanTitle:    title,
+		})
+	}
+	return result
+}
+
 func GetSubscriptionSelf(c *gin.Context) {
 	userId := c.GetInt("id")
+	lang := c.Query("lang")
 	settingMap, _ := model.GetUserSetting(userId, false)
 	pref := common.NormalizeBillingPreference(settingMap.BillingPreference)
 
@@ -68,8 +137,8 @@ func GetSubscriptionSelf(c *gin.Context) {
 
 	common.ApiSuccess(c, gin.H{
 		"billing_preference": pref,
-		"subscriptions":      activeSubscriptions, // all active subscriptions
-		"all_subscriptions":  allSubscriptions,    // all subscriptions including expired
+		"subscriptions":      toSubscriptionSummaryDTOs(activeSubscriptions, lang), // all active subscriptions
+		"all_subscriptions":  toSubscriptionSummaryDTOs(allSubscriptions, lang),    // all subscriptions including expired
 	})
 }
 
@@ -194,7 +263,19 @@ func AdminCreateSubscriptionPlan(c *gin.Context) {
 		common.ApiErrorMsg(c, "自定义重置周期需大于0秒")
 		return
 	}
-	err := model.DB.Create(&req.Plan).Error
+	titleI18n, err := sanitizeSubscriptionI18n(req.Plan.TitleI18n)
+	if err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	subtitleI18n, err := sanitizeSubscriptionI18n(req.Plan.SubtitleI18n)
+	if err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	req.Plan.TitleI18n = titleI18n
+	req.Plan.SubtitleI18n = subtitleI18n
+	err = model.DB.Create(&req.Plan).Error
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -214,10 +295,20 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 		return
 	}
 	var req AdminUpsertSubscriptionPlanRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindBodyWith(&req, binding.JSON); err != nil {
 		common.ApiErrorMsg(c, "参数错误")
 		return
 	}
+	// Detect whether the client actually sent the i18n fields. A client that
+	// omits them (e.g. the default frontend) should preserve existing
+	// translations rather than wipe them.
+	var i18nProbe struct {
+		Plan struct {
+			TitleI18n    *string `json:"title_i18n"`
+			SubtitleI18n *string `json:"subtitle_i18n"`
+		} `json:"plan"`
+	}
+	_ = c.ShouldBindBodyWith(&i18nProbe, binding.JSON)
 	if strings.TrimSpace(req.Plan.Title) == "" {
 		common.ApiErrorMsg(c, "套餐标题不能为空")
 		return
@@ -261,8 +352,18 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 		common.ApiErrorMsg(c, "自定义重置周期需大于0秒")
 		return
 	}
+	titleI18n, err := sanitizeSubscriptionI18n(req.Plan.TitleI18n)
+	if err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	subtitleI18n, err := sanitizeSubscriptionI18n(req.Plan.SubtitleI18n)
+	if err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
 
-	err := model.DB.Transaction(func(tx *gorm.DB) error {
+	err = model.DB.Transaction(func(tx *gorm.DB) error {
 		// update plan (allow zero values updates with map)
 		updateMap := map[string]interface{}{
 			"title":                      req.Plan.Title,
@@ -286,6 +387,13 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 		}
 		if req.Plan.AllowBalancePay != nil {
 			updateMap["allow_balance_pay"] = *req.Plan.AllowBalancePay
+		}
+		// Only touch the i18n columns when the client actually sent them.
+		if i18nProbe.Plan.TitleI18n != nil {
+			updateMap["title_i18n"] = titleI18n
+		}
+		if i18nProbe.Plan.SubtitleI18n != nil {
+			updateMap["subtitle_i18n"] = subtitleI18n
 		}
 		if err := tx.Model(&model.SubscriptionPlan{}).Where("id = ?", id).Updates(updateMap).Error; err != nil {
 			return err

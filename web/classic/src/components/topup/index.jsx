@@ -58,7 +58,7 @@ function isSafeHttpCheckoutUrl(value) {
 }
 
 const TopUp = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [userState, userDispatch] = useContext(UserContext);
   const [statusState] = useContext(StatusContext);
@@ -102,6 +102,7 @@ const TopUp = () => {
   const [payMethods, setPayMethods] = useState([]);
 
   const affFetchedRef = useRef(false);
+  const plansFetchedRef = useRef(false);
 
   // 邀请相关状态
   const [affLink, setAffLink] = useState('');
@@ -537,23 +538,35 @@ const TopUp = () => {
     }
   };
 
-  const getSubscriptionPlans = async () => {
-    setSubscriptionLoading(true);
+  // silent: 语言切换时的刷新不改 loading 态、不清空旧列表，避免订阅 Tab 被
+  // 误判为「不可用」而回退到充值页（仅替换已本地化的标题/副标题文案）。
+  const getSubscriptionPlans = async ({ silent = false } = {}) => {
+    if (!silent) {
+      setSubscriptionLoading(true);
+    }
     try {
-      const res = await API.get('/api/subscription/plans');
+      const res = await API.get('/api/subscription/plans', {
+        params: { lang: i18n.language },
+      });
       if (res.data?.success) {
         setSubscriptionPlans(res.data.data || []);
       }
     } catch (e) {
-      setSubscriptionPlans([]);
+      if (!silent) {
+        setSubscriptionPlans([]);
+      }
     } finally {
-      setSubscriptionLoading(false);
+      if (!silent) {
+        setSubscriptionLoading(false);
+      }
     }
   };
 
   const getSubscriptionSelf = async () => {
     try {
-      const res = await API.get('/api/subscription/self');
+      const res = await API.get('/api/subscription/self', {
+        params: { lang: i18n.language },
+      });
       if (res.data?.success) {
         setBillingPreference(
           res.data.data?.billing_preference || 'subscription_first',
@@ -785,9 +798,18 @@ const TopUp = () => {
   // 在 statusState 可用时获取充值信息
   useEffect(() => {
     getTopupInfo().then();
-    getSubscriptionPlans().then();
-    getSubscriptionSelf().then();
   }, []);
+
+  // 套餐标题/副标题由后端按 lang 本地化返回，语言切换后需重新拉取以刷新文案。
+  // 套餐列表与「我的订阅」标题都依赖 lang，故一并随语言切换重拉。
+  // 套餐列表首次加载走正常 loading（用于骨架屏与初始 Tab 定位）；后续语言切换
+  // 静默刷新，不重置 loading，以免订阅 Tab 被误判为不可用而回退到充值页。
+  useEffect(() => {
+    const silent = plansFetchedRef.current;
+    plansFetchedRef.current = true;
+    getSubscriptionPlans({ silent }).then();
+    getSubscriptionSelf().then();
+  }, [i18n.language]);
 
   useEffect(() => {
     if (statusState?.status) {
