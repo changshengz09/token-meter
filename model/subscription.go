@@ -158,6 +158,9 @@ type SubscriptionPlan struct {
 	PriceAmount float64 `json:"price_amount" gorm:"type:decimal(10,6);not null;default:0"`
 	Currency    string  `json:"currency" gorm:"type:varchar(8);not null;default:'USD'"`
 
+	// Original price for display-only discount effect (0 = no discount shown)
+	OriginalPriceAmount float64 `json:"original_price_amount" gorm:"type:decimal(10,6);not null;default:0"`
+
 	DurationUnit  string `json:"duration_unit" gorm:"type:varchar(16);not null;default:'month'"`
 	DurationValue int    `json:"duration_value" gorm:"type:int;not null;default:1"`
 	CustomSeconds int64  `json:"custom_seconds" gorm:"type:bigint;not null;default:0"`

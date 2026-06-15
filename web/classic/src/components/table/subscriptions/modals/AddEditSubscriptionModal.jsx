@@ -110,6 +110,7 @@ const AddEditSubscriptionModal = ({
       title: '',
       subtitle: '',
       price_amount: 0,
+      original_price_amount: 0,
       currency: 'USD',
       duration_unit: 'month',
       duration_value: 1,
@@ -148,6 +149,7 @@ const AddEditSubscriptionModal = ({
       title: p.title || '',
       subtitle: p.subtitle || '',
       price_amount: Number(p.price_amount || 0),
+      original_price_amount: Number(p.original_price_amount || 0),
       currency: 'USD',
       duration_unit: p.duration_unit || 'month',
       duration_value: Number(p.duration_value || 1),
@@ -208,6 +210,7 @@ const AddEditSubscriptionModal = ({
         plan: {
           ...planValues,
           price_amount: Number(values.price_amount || 0),
+          original_price_amount: Number(values.original_price_amount || 0),
           currency: 'USD',
           duration_value: Number(values.duration_value || 0),
           custom_seconds: Number(values.custom_seconds || 0),
@@ -421,6 +424,16 @@ const AddEditSubscriptionModal = ({
                   </div>
 
                   <Row gutter={12}>
+                    <Col span={12}>
+                      <Form.InputNumber
+                        field='original_price_amount'
+                        label={t('原价')}
+                        min={0}
+                        precision={2}
+                        extraText={t('仅用于展示折扣，留空或0不生效')}
+                        style={{ width: '100%' }}
+                      />
+                    </Col>
                     <Col span={12}>
                       <Form.InputNumber
                         field='price_amount'

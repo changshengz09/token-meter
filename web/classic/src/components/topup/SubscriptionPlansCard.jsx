@@ -541,6 +541,20 @@ const SubscriptionPlansCard = ({
                 const displayPrice = convertedPrice.toFixed(
                   Number.isInteger(convertedPrice) ? 0 : 2,
                 );
+                const originalPrice = Number(plan?.original_price_amount || 0);
+                const hasDiscount =
+                  originalPrice > 0 && originalPrice > price;
+                const convertedOriginalPrice = hasDiscount
+                  ? originalPrice * rate
+                  : 0;
+                const displayOriginalPrice = hasDiscount
+                  ? convertedOriginalPrice.toFixed(
+                      Number.isInteger(convertedOriginalPrice) ? 0 : 2,
+                    )
+                  : '';
+                const discountPercent = hasDiscount
+                  ? Math.round((1 - price / originalPrice) * 100)
+                  : 0;
                 const isPopular = index === plans.length - 1 && plans.length > 1;
                 const limit = Number(plan?.max_purchase_per_user || 0);
                 const limitLabel = limit > 0 ? `${t('限购')} ${limit}` : null;
@@ -613,13 +627,45 @@ const SubscriptionPlansCard = ({
 
                       {/* 价格区域 */}
                       <div className='py-2'>
-                        <div className='flex items-baseline justify-start'>
-                          <span className='text-xl font-bold text-purple-600'>
-                            {symbol}
-                          </span>
-                          <span className='text-3xl font-bold text-purple-600'>
-                            {displayPrice}
-                          </span>
+                        <div className='space-y-1'>
+                          {/* 折扣标签（始终占位） */}
+                          {hasDiscount ? (
+                            <Tag
+                              color='red'
+                              shape='circle'
+                              size='small'
+                              className='!px-2 !py-0.5'
+                            >
+                              {discountPercent < 10
+                                ? `${(10 - discountPercent / 10).toFixed(1)}${t('折')}`
+                                : `${t('限时活动，省')}${discountPercent}%`}
+                            </Tag>
+                          ) : (
+                            <div className='h-[22px]' />
+                          )}
+                          {/* 金额 */}
+                          <div className='flex items-baseline justify-start gap-2'>
+                            <span style={{ color: hasDiscount ? 'var(--semi-color-danger)' : 'var(--semi-color-primary)' }}>
+                              <span className='text-xl font-bold'>
+                                {symbol}
+                              </span>
+                              <span className='text-3xl font-bold'>
+                                {displayPrice}
+                              </span>
+                            </span>
+                            {/* 原价（仅折扣时显示，$无删除线，金额有删除线） */}
+                            {hasDiscount && (
+                              <span
+                                className='text-lg'
+                                style={{ color: 'var(--semi-color-text-2)' }}
+                              >
+                                {symbol}
+                                <span className='line-through'>
+                                  {displayOriginalPrice}
+                                </span>
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 

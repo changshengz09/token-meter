@@ -369,6 +369,7 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 			"title":                      req.Plan.Title,
 			"subtitle":                   req.Plan.Subtitle,
 			"price_amount":               req.Plan.PriceAmount,
+			"original_price_amount":      req.Plan.OriginalPriceAmount,
 			"currency":                   req.Plan.Currency,
 			"duration_unit":              req.Plan.DurationUnit,
 			"duration_value":             req.Plan.DurationValue,

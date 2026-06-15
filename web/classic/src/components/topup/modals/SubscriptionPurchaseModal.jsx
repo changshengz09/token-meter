@@ -32,7 +32,7 @@ import { Crown, CalendarClock, Package } from 'lucide-react';
 import { SiStripe } from 'react-icons/si';
 import { IconCreditCard } from '@douyinfe/semi-icons';
 import { renderQuota } from '../../../helpers';
-import { getCurrencyConfig } from '../../../helpers/render';
+import { getCurrencyConfig, convertUSDToCurrency } from '../../../helpers/render';
 import {
   formatSubscriptionDuration,
   formatSubscriptionResetPeriod,
@@ -65,6 +65,18 @@ const SubscriptionPurchaseModal = ({
   const displayPrice = convertedPrice.toFixed(
     Number.isInteger(convertedPrice) ? 0 : 2,
   );
+  const originalPrice = plan ? Number(plan.original_price_amount || 0) : 0;
+  const hasDiscount = originalPrice > 0 && originalPrice > price;
+  const convertedOriginalPrice = hasDiscount ? originalPrice * rate : 0;
+  const displayOriginalPrice = hasDiscount
+    ? convertedOriginalPrice.toFixed(
+        Number.isInteger(convertedOriginalPrice) ? 0 : 2,
+      )
+    : '';
+  const discountPercent = hasDiscount
+    ? Math.round((1 - price / originalPrice) * 100)
+    : 0;
+  const discountAmount = hasDiscount ? convertedOriginalPrice - convertedPrice : 0;
   // 只有当管理员开启支付网关 AND 套餐配置了对应的支付ID时才显示
   const hasStripe = enableStripeTopUp && !!plan?.stripe_price_id;
   const hasCreem = enableCreemTopUp && !!plan?.creem_product_id;
@@ -157,11 +169,39 @@ const SubscriptionPurchaseModal = ({
                 </div>
               ) : null}
               <Divider margin={8} />
+              {hasDiscount && (
+                <div className='flex justify-between items-center'>
+                  <Text className='text-slate-500 dark:text-slate-400'>
+                    {t('原价')}：
+                  </Text>
+                  <Text delete className='text-slate-500 dark:text-slate-400'>
+                    {symbol}
+                    {displayOriginalPrice}
+                  </Text>
+                </div>
+              )}
+              {hasDiscount && (
+                <div className='flex justify-between items-center'>
+                  <Text className='text-slate-500 dark:text-slate-400'>
+                    {t('优惠')}：
+                  </Text>
+                  <Text className='text-emerald-600 dark:text-emerald-400'>
+                    {t('省')} {convertUSDToCurrency(discountAmount)}
+                  </Text>
+                </div>
+              )}
               <div className='flex justify-between items-center'>
                 <Text strong className='text-slate-700 dark:text-slate-200'>
-                  {t('应付金额')}：
+                  {hasDiscount ? t('折后应付') : t('应付金额')}：
                 </Text>
-                <Text strong className='text-xl text-purple-600'>
+                <Text
+                  strong
+                  className={
+                    hasDiscount
+                      ? 'text-xl text-rose-600'
+                      : 'text-xl text-purple-600'
+                  }
+                >
                   {symbol}
                   {displayPrice}
                 </Text>
