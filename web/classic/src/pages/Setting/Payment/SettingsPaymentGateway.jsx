@@ -163,8 +163,9 @@ export default function SettingsPaymentGateway(props) {
               <Form.InputNumber
                 field='Price'
                 precision={2}
-                label={t('充值价格（x元/美金）')}
-                placeholder={t('例如：7，就是7元/美金')}
+                label={t('汇率（元/美金）')}
+                placeholder={t('例如：7，即 1 美元 = 7 元')}
+                extraText={t('用于人民币模式下的金额换算，仅在额度显示为"人民币"时生效')}
               />
             </Col>
             <Col xs={24} sm={24} md={12} lg={12} xl={12}>

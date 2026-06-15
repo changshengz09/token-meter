@@ -161,7 +161,6 @@ func getPayMoney(amount int64, group string) float64 {
 	}
 
 	dTopupGroupRatio := decimal.NewFromFloat(topupGroupRatio)
-	dPrice := decimal.NewFromFloat(operation_setting.Price)
 	// apply optional preset discount by the original request amount (if configured), default 1.0
 	discount := 1.0
 	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(amount)]; ok {
@@ -171,6 +170,13 @@ func getPayMoney(amount int64, group string) float64 {
 	}
 	dDiscount := decimal.NewFromFloat(discount)
 
+	// USD 模式下充值数量即为美元金额，不再乘单价（1:1 定价）
+	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeUSD {
+		payMoney := dAmount.Mul(dTopupGroupRatio).Mul(dDiscount)
+		return payMoney.InexactFloat64()
+	}
+
+	dPrice := decimal.NewFromFloat(operation_setting.Price)
 	payMoney := dAmount.Mul(dPrice).Mul(dTopupGroupRatio).Mul(dDiscount)
 
 	return payMoney.InexactFloat64()

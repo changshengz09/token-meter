@@ -28,6 +28,7 @@ import {
   renderQuotaWithAmount,
   copy,
   getQuotaPerUnit,
+  convertUSDToCurrency,
 } from '../../helpers';
 import { Modal, Toast } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
@@ -103,6 +104,7 @@ const TopUp = () => {
 
   const affFetchedRef = useRef(false);
   const plansFetchedRef = useRef(false);
+  const preModalAmountRef = useRef(null);
 
   // 邀请相关状态
   const [affLink, setAffLink] = useState('');
@@ -236,15 +238,19 @@ const TopUp = () => {
     setPaymentLoading(true);
     try {
       const selectedMinTopUp = getPaymentMinTopUp(payment);
+      // 保存弹窗前的 amount，以便弹窗关闭时恢复
+      preModalAmountRef.current = amount;
       await requestAmountByPayment(payment);
 
       if (topUpCount < selectedMinTopUp) {
         showError(t('充值数量不能小于') + selectedMinTopUp);
+        preModalAmountRef.current = null;
         return;
       }
       setOpen(true);
     } catch (error) {
       showError(t('获取金额失败'));
+      preModalAmountRef.current = null;
     } finally {
       setPaymentLoading(false);
     }
@@ -350,6 +356,7 @@ const TopUp = () => {
     } finally {
       setOpen(false);
       setConfirmLoading(false);
+      preModalAmountRef.current = null;
     }
   };
 
@@ -623,9 +630,9 @@ const TopUp = () => {
             payMethods = JSON.parse(payMethods);
           }
           if (payMethods && payMethods.length > 0) {
-            // 检查name和type是否为空
+            // 检查name和type是否为空，并过滤微信/支付宝
             payMethods = payMethods.filter((method) => {
-              return method.name && method.type;
+              return method.name && method.type && method.type !== 'alipay' && method.type !== 'wxpay';
             });
             // 如果没有color，则设置默认颜色
             payMethods = payMethods.map((method) => {
@@ -716,7 +723,11 @@ const TopUp = () => {
           }
 
           // 初始化显示实付金额
-          getAmount(minTopUpValue);
+          if (enableStripeTopUp) {
+            getStripeAmount(minTopUpValue);
+          } else {
+            getAmount(minTopUpValue);
+          }
         } catch (e) {
           setPayMethods([]);
         }
@@ -816,19 +827,30 @@ const TopUp = () => {
       // const minTopUpValue = statusState.status.min_topup || 1;
       // setMinTopUp(minTopUpValue);
       // setTopUpCount(minTopUpValue);
-      setPriceRatio(statusState.status.price || 1);
+      const quotaDisplayType = localStorage.getItem('quota_display_type') || 'USD';
+      if (quotaDisplayType === 'USD') {
+        setPriceRatio(1);
+      } else {
+        setPriceRatio(statusState.status.price || 7.3);
+      }
 
       setStatusLoading(false);
     }
   }, [statusState?.status]);
 
   const renderAmount = () => {
-    return amount + ' ' + t('元');
+    // amount 由后端按美元口径返回（Stripe 单价 = $1/单位）。
+    // 统一走货币 helper，按「额度显示类型」渲染符号与汇率，避免写死「元」。
+    return convertUSDToCurrency(amount);
   };
 
   const getAmount = async (value) => {
     if (value === undefined) {
       value = topUpCount;
+    }
+    // Stripe 启用时统一使用 Stripe 定价 API，确保显示金额与支付时一致
+    if (enableStripeTopUp) {
+      return getStripeAmount(value);
     }
     setAmountLoading(true);
     try {
@@ -881,6 +903,11 @@ const TopUp = () => {
 
   const handleCancel = () => {
     setOpen(false);
+    // 恢复弹窗打开前的 amount
+    if (preModalAmountRef.current !== null) {
+      setAmount(preModalAmountRef.current);
+      preModalAmountRef.current = null;
+    }
   };
 
   const handleTransferCancel = () => {

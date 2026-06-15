@@ -89,6 +89,10 @@ func getWaffoPayMoney(amount float64, group string) float64 {
 			discount = ds
 		}
 	}
+	// USD 模式下充值数量即为美元金额，不再乘单价（1:1 定价）
+	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeUSD {
+		return amount * topupGroupRatio * discount
+	}
 	return amount * setting.WaffoUnitPrice * topupGroupRatio * discount
 }
 
