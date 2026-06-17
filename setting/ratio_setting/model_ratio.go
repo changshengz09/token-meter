@@ -347,14 +347,16 @@ var defaultCompletionRatio = map[string]float64{
 
 // InitRatioSettings initializes all model related settings maps
 func InitRatioSettings() {
-	modelPriceMap.AddAll(defaultModelPrice)
-	modelRatioMap.AddAll(defaultModelRatio)
-	completionRatioMap.AddAll(defaultCompletionRatio)
-	cacheRatioMap.AddAll(defaultCacheRatio)
-	createCacheRatioMap.AddAll(defaultCreateCacheRatio)
-	imageRatioMap.AddAll(defaultImageRatio)
-	audioRatioMap.AddAll(defaultAudioRatio)
-	audioCompletionRatioMap.AddAll(defaultAudioCompletionRatio)
+	// 已停用内置默认定价，改为完全由后台页面手动配置。
+	// 如需恢复内置默认价格，取消下面 8 行注释即可。
+	// modelPriceMap.AddAll(defaultModelPrice)
+	// modelRatioMap.AddAll(defaultModelRatio)
+	// completionRatioMap.AddAll(defaultCompletionRatio)
+	// cacheRatioMap.AddAll(defaultCacheRatio)
+	// createCacheRatioMap.AddAll(defaultCreateCacheRatio)
+	// imageRatioMap.AddAll(defaultImageRatio)
+	// audioRatioMap.AddAll(defaultAudioRatio)
+	// audioCompletionRatioMap.AddAll(defaultAudioCompletionRatio)
 }
 
 func GetModelPriceMap() map[string]float64 {

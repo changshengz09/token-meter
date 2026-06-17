@@ -424,6 +424,9 @@ const SubscriptionPlansCard = ({
                       totalAmount > 0
                         ? Math.max(0, totalAmount - usedAmount)
                         : 0;
+                    const isExhausted = totalAmount > 0 && remainAmount <= 0;
+                    const renderTokenCount = (n) =>
+                      Number(n || 0).toLocaleString();
                     // 优先后端按 lang 下发的本地化标题（停用套餐也能命中）；
                     // 回退到在售套餐列表映射；都没有则留空，由下方兜底为「订阅 #id」。
                     const planTitle =
@@ -443,10 +446,28 @@ const SubscriptionPlansCard = ({
                         {/* 订阅概要 */}
                         <div className='flex items-center justify-between text-xs mb-2'>
                           <div className='flex items-center gap-2'>
-                            <span className='font-medium'>
-                              {planTitle
-                                ? `${planTitle} · ${t('订阅')} #${subscription?.id}`
-                                : `${t('订阅')} #${subscription?.id}`}
+                            <span className='flex items-baseline gap-1'>
+                              {planTitle ? (
+                                <>
+                                  <span
+                                    className='text-sm font-bold'
+                                    style={{
+                                      color: isActive
+                                        ? 'var(--semi-color-primary)'
+                                        : 'var(--semi-color-text-2)',
+                                    }}
+                                  >
+                                    {planTitle}
+                                  </span>
+                                  <span className='text-gray-400'>
+                                    · {t('订阅')} #{subscription?.id}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className='font-medium'>
+                                  {t('订阅')} #{subscription?.id}
+                                </span>
+                              )}
                             </span>
                             {isActive ? (
                               <Tag
@@ -494,26 +515,53 @@ const SubscriptionPlansCard = ({
                         <div className='text-xs text-gray-500 mb-2'>
                           {t('总额度')}:{' '}
                           {totalAmount > 0 ? (
-                            <span>
-                              {renderQuota(usedAmount)}/
-                              {renderQuota(totalAmount)} · {t('剩余')}{' '}
-                              {renderQuota(remainAmount)}
-                            </span>
+                            <>
+                              <span>
+                                {renderQuota(usedAmount)}/
+                                {renderQuota(totalAmount)}
+                              </span>
+                              <span
+                                style={
+                                  isExhausted
+                                    ? { color: 'var(--semi-color-danger)' }
+                                    : undefined
+                                }
+                              >
+                                {' '}
+                                · {t('剩余')} {renderQuota(remainAmount)}
+                                <span className='ml-2'>
+                                  {t('已用')} {usagePercent}%
+                                </span>
+                              </span>
+                            </>
                           ) : (
                             t('不限')
-                          )}
-                          {totalAmount > 0 && (
-                            <span className='ml-2'>
-                              {t('已用')} {usagePercent}%
-                            </span>
                           )}
                         </div>
                         {quotaDisplayType !== 'TOKENS' && (
                             <div className='text-xs text-gray-400 mb-2'>
                               {'Token'}:{' '}
-                              {totalAmount > 0
-                                ? `${renderTokenQuota(remainAmount)}/${renderTokenQuota(totalAmount)}`
-                                : t('不限')}
+                              {totalAmount > 0 ? (
+                                <>
+                                  <span>
+                                    {renderTokenCount(usedAmount)}/
+                                    {renderTokenCount(totalAmount)}
+                                  </span>
+                                  <span
+                                    className='ml-2'
+                                    style={
+                                      isExhausted
+                                        ? { color: 'var(--semi-color-danger)' }
+                                        : undefined
+                                    }
+                                  >
+                                    · {t('剩余')} {renderTokenCount(remainAmount)}{' '}
+                                    {t('已用')} {usagePercent}%
+                                  </span>
+                                </>
+                              ) : (
+                                t('不限')
+                              )}
                             </div>
                           )}
                         {!isLast && <Divider margin={12} />}
