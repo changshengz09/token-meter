@@ -69,7 +69,8 @@ const resetPeriodOptions = [
 // Whitelisted plan i18n languages, aligned with the frontend i18next locales
 // and the backend subscriptionLangs whitelist.
 const I18N_LANGS = [
-  { code: 'zh', label: '中文' },
+  { code: 'zh-CN', label: '简体中文' },
+  { code: 'zh-TW', label: '繁體中文' },
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'Français' },
   { code: 'ru', label: 'Русский' },

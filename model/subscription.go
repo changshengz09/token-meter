@@ -212,16 +212,29 @@ func (p *SubscriptionPlan) NormalizeDefaults() {
 // subscriptionLangs is the whitelist of languages the plan i18n fields accept,
 // aligned with the frontend i18next locales (web/default & web/classic).
 var subscriptionLangs = map[string]struct{}{
-	"zh": {}, "en": {}, "fr": {}, "ru": {}, "ja": {}, "vi": {},
+	"zh-CN": {}, "zh-TW": {}, "en": {}, "fr": {}, "ru": {}, "ja": {}, "vi": {},
 }
 
 // NormalizeSubscriptionLang maps an arbitrary language tag to a whitelisted plan
-// language code, or returns "" if unsupported. zh-CN/zh-TW collapse to zh.
+// language code, or returns "" if unsupported. zh-CN and zh-TW are distinct;
+// bare "zh" defaults to zh-CN.
 func NormalizeSubscriptionLang(lang string) string {
 	lang = strings.ToLower(strings.TrimSpace(lang))
 	if lang == "" {
 		return ""
 	}
+	// Precise match first
+	if _, ok := subscriptionLangs[lang]; ok {
+		return lang
+	}
+	// Chinese variant mapping
+	if lang == "zh-cn" || lang == "zh" || lang == "zh-sg" || strings.HasPrefix(lang, "zh-hans") {
+		return "zh-CN"
+	}
+	if lang == "zh-tw" || lang == "zh-hk" || lang == "zh-mo" || strings.HasPrefix(lang, "zh-hant") {
+		return "zh-TW"
+	}
+	// Other languages: strip region suffix and match
 	if idx := strings.IndexAny(lang, "-_"); idx > 0 {
 		lang = lang[:idx]
 	}

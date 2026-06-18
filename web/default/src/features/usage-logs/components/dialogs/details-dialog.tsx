@@ -393,7 +393,7 @@ interface DetailsDialogProps {
 }
 
 // Whitelisted plan i18n languages, aligned with the backend subscriptionLangs whitelist.
-const SUBSCRIPTION_PLAN_LANGS = ['zh', 'en', 'fr', 'ru', 'ja', 'vi']
+const SUBSCRIPTION_PLAN_LANGS = ['zh-CN', 'zh-TW', 'en', 'fr', 'ru', 'ja', 'vi']
 
 // localizeSubscriptionPlanTitle picks the plan title for the current UI language from the
 // i18n JSON map snapshot stored in the log, falling back to the legacy single title.
@@ -411,9 +411,7 @@ function localizeSubscriptionPlanTitle(
     return fb
   }
   if (!map || typeof map !== 'object') return fb
-  const code = String(lang || '')
-    .toLowerCase()
-    .split(/[-_]/)[0]
+  const code = String(lang || '').trim()
   if (code && SUBSCRIPTION_PLAN_LANGS.includes(code)) {
     const v = map[code]
     if (typeof v === 'string' && v.trim() !== '') return v
