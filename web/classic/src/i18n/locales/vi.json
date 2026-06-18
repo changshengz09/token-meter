@@ -1,5 +1,13 @@
 {
   "translation": {
+    "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Nạp tiền trực tuyến thành công. Hạn mức: {{quota}}, đã thanh toán: {{money}}",
+    "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "Quản trị viên nạp thủ công thành công. Hạn mức: {{quota}}, đã thanh toán: {{money}}",
+    "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Nạp qua Creem thành công. Hạn mức: {{quota}}, đã thanh toán: {{money}}",
+    "使用 Waffo 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Nạp qua Waffo thành công. Hạn mức: {{quota}}, đã thanh toán: {{money}}",
+    "使用 Waffo Pancake 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Nạp qua Waffo Pancake thành công. Hạn mức: {{quota}}, đã thanh toán: {{money}}",
+    "通过兑换码充值 {{quota}}，兑换码 ID {{id}}": "Đổi bằng mã: {{quota}}, ID mã {{id}}",
+    "订阅购买成功，套餐: {{plan}}，支付金额: {{money}}，支付方式: {{method}}": "Đã mua gói đăng ký. Gói: {{plan}}, đã thanh toán: {{money}}, phương thức: {{method}}",
+    "使用余额购买订阅成功，套餐: {{plan}}，支付金额: {{money}}，扣除额度: {{quota}}": "Đã mua gói đăng ký bằng số dư. Gói: {{plan}}, đã thanh toán: {{money}}, đã trừ: {{quota}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one": " + Tìm kiếm Web {{count}} lần / 1K lần * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + Tìm kiếm Web {{count}} lần / 1K lần * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + 图片生成调用 {{symbol}}{{price}} / 1次 * {{ratioType}} {{ratio}}": " + Gọi tạo hình ảnh {{symbol}}{{price}} / 1 lần * {{ratioType}} {{ratio}}",

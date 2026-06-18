@@ -34,6 +34,7 @@ import {
   renderModelTag,
   renderModelPriceSimple,
   renderTieredModelPriceSimple,
+  localizeSubscriptionPlanTitle,
 } from '../../../helpers';
 import { IconHelpCircle } from '@douyinfe/semi-icons';
 import { CircleAlert, Route, Sparkles } from 'lucide-react';
@@ -424,6 +425,55 @@ function renderCompactDetailSummary(summarySegments) {
   );
 }
 
+// 充值/订阅日志（type=1）事件码 -> 本地化模板 key 映射。
+// 文案以结构化数据（Other.topup_meta）实时渲染，随界面语言切换。
+const TOPUP_EVENT_TEMPLATE_KEYS = {
+  online_recharge: '在线充值成功，充值额度: {{quota}}，支付金额: {{money}}',
+  admin_topup: '管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}',
+  creem_recharge: '使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}',
+  waffo_recharge: '使用 Waffo 充值成功，充值额度: {{quota}}，支付金额: {{money}}',
+  waffo_pancake_recharge:
+    '使用 Waffo Pancake 充值成功，充值额度: {{quota}}，支付金额: {{money}}',
+  redemption_recharge: '通过兑换码充值 {{quota}}，兑换码 ID {{id}}',
+  subscription_purchase:
+    '订阅购买成功，套餐: {{plan}}，支付金额: {{money}}，支付方式: {{method}}',
+  subscription_balance_purchase:
+    '使用余额购买订阅成功，套餐: {{plan}}，支付金额: {{money}}，扣除额度: {{quota}}',
+};
+
+// 从充值/订阅日志的结构化 meta 渲染本地化详情文案，无 meta 时返回 null。
+function getTopupLogDetailText(record, t, language) {
+  if (record?.type !== 1) {
+    return null;
+  }
+  const other = getLogOther(record.other);
+  const meta = other?.topup_meta;
+  if (!meta || !meta.event) {
+    return null;
+  }
+  const templateKey = TOPUP_EVENT_TEMPLATE_KEYS[meta.event];
+  if (!templateKey) {
+    return null;
+  }
+  const quotaValue =
+    meta.event === 'subscription_balance_purchase'
+      ? meta.deduct_quota
+      : meta.quota;
+  // 套餐名按当前界面语言从 i18n 快照解析，回退到旧的单一标题
+  const planName = localizeSubscriptionPlanTitle(
+    meta.plan_title_i18n,
+    meta.plan,
+    language,
+  );
+  return t(templateKey, {
+    quota: quotaValue != null ? renderQuota(quotaValue, 6) : '',
+    money: meta.money != null ? meta.money : '',
+    plan: planName ?? '',
+    method: meta.payment_method ?? '',
+    id: meta.redemption_id ?? '',
+  });
+}
+
 function getUsageLogDetailSummary(record, text, billingDisplayMode, t) {
   const other = getLogOther(record.other);
 
@@ -476,6 +526,7 @@ function getUsageLogDetailSummary(record, text, billingDisplayMode, t) {
 
 export const getLogsColumns = ({
   t,
+  language,
   COLUMN_KEYS,
   copyText,
   showUserInfoFunc,
@@ -913,6 +964,9 @@ export const getLogsColumns = ({
         );
 
         if (!detailSummary) {
+          // 充值/订阅日志：优先使用结构化 meta 渲染的本地化文案
+          const displayText =
+            getTopupLogDetailText(record, t, language) ?? text;
           return (
             <Typography.Paragraph
               ellipsis={{
@@ -924,7 +978,7 @@ export const getLogsColumns = ({
               }}
               style={{ maxWidth: 200, marginBottom: 0 }}
             >
-              {text}
+              {displayText}
             </Typography.Paragraph>
           );
         }

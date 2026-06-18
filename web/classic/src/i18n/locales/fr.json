@@ -1,5 +1,13 @@
 {
   "translation": {
+    "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Recharge en ligne réussie. Montant : {{quota}}, payé : {{money}}",
+    "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "Réapprovisionnement manuel par l'administrateur réussi. Montant : {{quota}}, payé : {{money}}",
+    "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Recharge Creem réussie. Montant : {{quota}}, payé : {{money}}",
+    "使用 Waffo 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Recharge Waffo réussie. Montant : {{quota}}, payé : {{money}}",
+    "使用 Waffo Pancake 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Recharge Waffo Pancake réussie. Montant : {{quota}}, payé : {{money}}",
+    "通过兑换码充值 {{quota}}，兑换码 ID {{id}}": "Échangé via un code : {{quota}}, ID du code {{id}}",
+    "订阅购买成功，套餐: {{plan}}，支付金额: {{money}}，支付方式: {{method}}": "Abonnement acheté. Forfait : {{plan}}, payé : {{money}}, méthode : {{method}}",
+    "使用余额购买订阅成功，套餐: {{plan}}，支付金额: {{money}}，扣除额度: {{quota}}": "Abonnement acheté avec le solde. Forfait : {{plan}}, payé : {{money}}, déduit : {{quota}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one": " + Recherche Web {{count}} fois / 1K fois * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_many": " + Recherche Web {{count}} fois / 1K fois * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + Recherche Web {{count}} fois / 1K fois * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",

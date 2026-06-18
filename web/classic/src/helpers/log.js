@@ -31,3 +31,36 @@ export function getLogOther(otherStr) {
     return null;
   }
 }
+
+// 订阅套餐 title_i18n 支持的语言码，与后端 subscriptionLangs / 前端 locale 码保持一致。
+export const SUBSCRIPTION_PLAN_LANGS = [
+  'zh-CN',
+  'zh-TW',
+  'en',
+  'fr',
+  'ru',
+  'ja',
+  'vi',
+];
+
+// localizeSubscriptionPlanTitle 从日志中保存的 i18n JSON 快照按当前界面语言取套餐名，
+// 缺失时回退到旧的单一标题字段。
+export function localizeSubscriptionPlanTitle(rawI18n, fallback, lang) {
+  const fb = fallback || '';
+  if (!rawI18n) return fb;
+  let map = rawI18n;
+  if (typeof rawI18n === 'string') {
+    try {
+      map = JSON.parse(rawI18n);
+    } catch {
+      return fb;
+    }
+  }
+  if (!map || typeof map !== 'object') return fb;
+  const code = String(lang || '').trim();
+  if (code && SUBSCRIPTION_PLAN_LANGS.includes(code)) {
+    const v = map[code];
+    if (typeof v === 'string' && v.trim() !== '') return v;
+  }
+  return fb;
+}

@@ -1,5 +1,13 @@
 {
   "translation": {
+    "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "オンラインチャージに成功しました。チャージ額: {{quota}}、支払金額: {{money}}",
+    "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "管理者による手動チャージに成功しました。チャージ額: {{quota}}、支払金額: {{money}}",
+    "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Creem でのチャージに成功しました。チャージ額: {{quota}}、支払金額: {{money}}",
+    "使用 Waffo 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Waffo でのチャージに成功しました。チャージ額: {{quota}}、支払金額: {{money}}",
+    "使用 Waffo Pancake 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Waffo Pancake でのチャージに成功しました。チャージ額: {{quota}}、支払金額: {{money}}",
+    "通过兑换码充值 {{quota}}，兑换码 ID {{id}}": "引換コードでチャージ: {{quota}}、コード ID {{id}}",
+    "订阅购买成功，套餐: {{plan}}，支付金额: {{money}}，支付方式: {{method}}": "サブスクリプションを購入しました。プラン: {{plan}}、支払金額: {{money}}、支払方法: {{method}}",
+    "使用余额购买订阅成功，套餐: {{plan}}，支付金额: {{money}}，扣除额度: {{quota}}": "残高でサブスクリプションを購入しました。プラン: {{plan}}、支払金額: {{money}}、控除額: {{quota}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one": " + Web検索 {{count}}回 / 1K回 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + Web検索 {{count}}回 / 1K回 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other",
     " + 图片生成调用 {{symbol}}{{price}} / 1次 * {{ratioType}} {{ratio}}": " + 画像生成APIコール {{symbol}}{{price}} / 1回 * {{ratioType}} {{ratio}}",

@@ -45,6 +45,7 @@ const LogsTable = (logsData) => {
     isAdminUser,
     billingDisplayMode,
     t,
+    language,
     COLUMN_KEYS,
   } = logsData;
 
@@ -52,6 +53,7 @@ const LogsTable = (logsData) => {
   const allColumns = useMemo(() => {
     return getLogsColumns({
       t,
+      language,
       COLUMN_KEYS,
       copyText,
       showUserInfoFunc,
@@ -61,6 +63,7 @@ const LogsTable = (logsData) => {
     });
   }, [
     t,
+    language,
     COLUMN_KEYS,
     copyText,
     showUserInfoFunc,

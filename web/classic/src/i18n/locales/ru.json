@@ -1,5 +1,13 @@
 {
   "translation": {
+    "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Онлайн-пополнение выполнено. Сумма: {{quota}}, оплачено: {{money}}",
+    "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "Ручное пополнение администратором выполнено. Сумма: {{quota}}, оплачено: {{money}}",
+    "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Пополнение через Creem выполнено. Сумма: {{quota}}, оплачено: {{money}}",
+    "使用 Waffo 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Пополнение через Waffo выполнено. Сумма: {{quota}}, оплачено: {{money}}",
+    "使用 Waffo Pancake 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Пополнение через Waffo Pancake выполнено. Сумма: {{quota}}, оплачено: {{money}}",
+    "通过兑换码充值 {{quota}}，兑换码 ID {{id}}": "Активировано по коду: {{quota}}, ID кода {{id}}",
+    "订阅购买成功，套餐: {{plan}}，支付金额: {{money}}，支付方式: {{method}}": "Подписка приобретена. Тариф: {{plan}}, оплачено: {{money}}, способ: {{method}}",
+    "使用余额购买订阅成功，套餐: {{plan}}，支付金额: {{money}}，扣除额度: {{quota}}": "Подписка приобретена за счёт баланса. Тариф: {{plan}}, оплачено: {{money}}, списано: {{quota}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one": " + Web-поиск {{count}} раз / 1K раз * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_few": " + Web-поиск {{count}} раза / 1K раз * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_many": " + Web-поиск {{count}} раз / 1K раз * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",

@@ -1,5 +1,13 @@
 {
   "translation": {
+    "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Online recharge succeeded. Amount: {{quota}}, paid: {{money}}",
+    "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "Admin manual top-up succeeded. Amount: {{quota}}, paid: {{money}}",
+    "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Creem recharge succeeded. Amount: {{quota}}, paid: {{money}}",
+    "使用 Waffo 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Waffo recharge succeeded. Amount: {{quota}}, paid: {{money}}",
+    "使用 Waffo Pancake 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Waffo Pancake recharge succeeded. Amount: {{quota}}, paid: {{money}}",
+    "通过兑换码充值 {{quota}}，兑换码 ID {{id}}": "Redeemed via code: {{quota}}, code ID {{id}}",
+    "订阅购买成功，套餐: {{plan}}，支付金额: {{money}}，支付方式: {{method}}": "Subscription purchased. Plan: {{plan}}, paid: {{money}}, method: {{method}}",
+    "使用余额购买订阅成功，套餐: {{plan}}，支付金额: {{money}}，扣除额度: {{quota}}": "Subscription purchased with balance. Plan: {{plan}}, paid: {{money}}, deducted: {{quota}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one": " + Web search {{count}} time / 1K times * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + Web search {{count}} times / 1K times * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + 图片生成调用 {{symbol}}{{price}} / 1次 * {{ratioType}} {{ratio}}": " + Image generation call {{symbol}}{{price}} / 1 time * {{ratioType}} {{ratio}}",

@@ -604,6 +604,7 @@ func CompleteSubscriptionOrder(tradeNo string, providerPayload string, expectedP
 	}
 	var logUserId int
 	var logPlanTitle string
+	var logPlanTitleI18n string
 	var logMoney float64
 	var logPaymentMethod string
 	var upgradeGroup string
@@ -649,6 +650,7 @@ func CompleteSubscriptionOrder(tradeNo string, providerPayload string, expectedP
 		}
 		logUserId = order.UserId
 		logPlanTitle = plan.Title
+		logPlanTitleI18n = plan.TitleI18n
 		logMoney = order.Money
 		logPaymentMethod = order.PaymentMethod
 		return nil
@@ -660,8 +662,13 @@ func CompleteSubscriptionOrder(tradeNo string, providerPayload string, expectedP
 		_ = UpdateUserGroupCache(logUserId, upgradeGroup)
 	}
 	if logUserId > 0 {
-		msg := fmt.Sprintf("订阅购买成功，套餐: %s，支付金额: %.2f，支付方式: %s", logPlanTitle, logMoney, logPaymentMethod)
-		RecordLog(logUserId, LogTypeTopup, msg)
+		RecordTopupEventLog(logUserId, map[string]interface{}{
+			"event":           TopupEventSubscriptionPurchase,
+			"plan":            logPlanTitle,
+			"plan_title_i18n": logPlanTitleI18n,
+			"money":           logMoney,
+			"payment_method":  logPaymentMethod,
+		})
 	}
 	return nil
 }
@@ -771,6 +778,7 @@ func PurchaseSubscriptionWithBalance(userId int, planId int) error {
 	}
 
 	var logPlanTitle string
+	var logPlanTitleI18n string
 	var logMoney float64
 	var chargedQuota int
 	var upgradeGroup string
@@ -831,6 +839,7 @@ func PurchaseSubscriptionWithBalance(userId int, planId int) error {
 		}
 
 		logPlanTitle = plan.Title
+		logPlanTitleI18n = plan.TitleI18n
 		logMoney = plan.PriceAmount
 		chargedQuota = requiredQuota
 		upgradeGroup = strings.TrimSpace(plan.UpgradeGroup)
@@ -848,8 +857,13 @@ func PurchaseSubscriptionWithBalance(userId int, planId int) error {
 	if upgradeGroup != "" {
 		_ = UpdateUserGroupCache(userId, upgradeGroup)
 	}
-	msg := fmt.Sprintf("使用余额购买订阅成功，套餐: %s，支付金额: %.2f，扣除额度: %d", logPlanTitle, logMoney, chargedQuota)
-	RecordLog(userId, LogTypeTopup, msg)
+	RecordTopupEventLog(userId, map[string]interface{}{
+		"event":           TopupEventSubscriptionBalancePurchase,
+		"plan":            logPlanTitle,
+		"plan_title_i18n": logPlanTitleI18n,
+		"money":           logMoney,
+		"deduct_quota":    chargedQuota,
+	})
 	return nil
 }
 

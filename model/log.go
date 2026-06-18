@@ -66,6 +66,19 @@ const (
 	LogTypeRefund  = 6
 )
 
+// Topup 类日志事件码。前端读取 Other.topup_meta.event 后映射到本地化模板，
+// 实现充值/订阅日志详情的多语言渲染（不再写入硬编码中文 content）。
+const (
+	TopupEventOnlineRecharge              = "online_recharge"
+	TopupEventAdminTopup                  = "admin_topup"
+	TopupEventCreemRecharge               = "creem_recharge"
+	TopupEventWaffoRecharge               = "waffo_recharge"
+	TopupEventWaffoPancakeRecharge        = "waffo_pancake_recharge"
+	TopupEventRedemptionRecharge          = "redemption_recharge"
+	TopupEventSubscriptionPurchase        = "subscription_purchase"
+	TopupEventSubscriptionBalancePurchase = "subscription_balance_purchase"
+)
+
 func formatUserLogs(logs []*Log, startIdx int) {
 	for i := range logs {
 		logs[i].ChannelName = ""
@@ -130,7 +143,9 @@ func RecordLogWithAdminInfo(userId int, logType int, content string, adminInfo m
 	}
 }
 
-func RecordTopupLog(userId int, content string, callerIp string, paymentMethod string, callbackPaymentMethod string) {
+// RecordTopupLog 记录带支付上下文的充值日志。content 不再写入，
+// 充值详情以结构化数据存入 Other.topup_meta，由前端按当前语言渲染。
+func RecordTopupLog(userId int, meta map[string]interface{}, callerIp string, paymentMethod string, callbackPaymentMethod string) {
 	username, _ := GetUsernameById(userId, false)
 	adminInfo := map[string]interface{}{
 		"server_ip":               common.GetIp(),
@@ -143,13 +158,36 @@ func RecordTopupLog(userId int, content string, callerIp string, paymentMethod s
 	other := map[string]interface{}{
 		"admin_info": adminInfo,
 	}
+	if len(meta) > 0 {
+		other["topup_meta"] = meta
+	}
 	log := &Log{
 		UserId:    userId,
 		Username:  username,
 		CreatedAt: common.GetTimestamp(),
 		Type:      LogTypeTopup,
-		Content:   content,
 		Ip:        callerIp,
+		Other:     common.MapToJsonStr(other),
+	}
+	err := LOG_DB.Create(log).Error
+	if err != nil {
+		common.SysLog("failed to record topup log: " + err.Error())
+	}
+}
+
+// RecordTopupEventLog 记录无支付上下文的充值/订阅日志（订阅购买、兑换码等）。
+// content 留空，详情以结构化数据存入 Other.topup_meta。
+func RecordTopupEventLog(userId int, meta map[string]interface{}) {
+	username, _ := GetUsernameById(userId, false)
+	other := map[string]interface{}{}
+	if len(meta) > 0 {
+		other["topup_meta"] = meta
+	}
+	log := &Log{
+		UserId:    userId,
+		Username:  username,
+		CreatedAt: common.GetTimestamp(),
+		Type:      LogTypeTopup,
 		Other:     common.MapToJsonStr(other),
 	}
 	err := LOG_DB.Create(log).Error

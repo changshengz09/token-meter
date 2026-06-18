@@ -259,24 +259,36 @@ const RechargeCard = ({
                         t('充值数量，最低 ') + renderQuotaWithAmount(minTopUp)
                       }
                       value={topUpCount}
-                      min={minTopUp}
                       max={999999999}
                       step={1}
                       precision={0}
-                      onChange={async (value) => {
+                      onChange={(value) => {
                         if (value && value >= 1) {
                           setTopUpCount(value);
                           setSelectedPreset(null);
-                          await getAmount(value);
+                          if (value >= minTopUp) {
+                            getAmount(value);
+                          }
                         }
                       }}
                       onBlur={(e) => {
                         const value = parseInt(e.target.value);
-                        if (!value || value < 1) {
-                          setTopUpCount(1);
-                          getAmount(1);
+                        if (!value || value < minTopUp) {
+                          setTopUpCount(minTopUp);
+                          getAmount(minTopUp);
                         }
                       }}
+                      rules={[
+                        {
+                          validator: (rule, value) => {
+                            if (value != null && value > 0 && value < minTopUp) {
+                              return Promise.reject(t('充值数量不能小于') + minTopUp);
+                            }
+                            return Promise.resolve();
+                          },
+                          message: t('充值数量不能小于') + minTopUp,
+                        },
+                      ]}
                       formatter={(value) => (value ? `${value}` : '')}
                       parser={(value) =>
                         value ? parseInt(value.replace(/[^\d]/g, '')) : 0

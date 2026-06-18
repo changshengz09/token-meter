@@ -1,5 +1,13 @@
 {
   "translation": {
+    "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "線上充值成功，充值額度: {{quota}}，支付金額: {{money}}",
+    "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "管理員補單成功，充值額度: {{quota}}，支付金額: {{money}}",
+    "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "使用 Creem 充值成功，充值額度: {{quota}}，支付金額: {{money}}",
+    "使用 Waffo 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "使用 Waffo 充值成功，充值額度: {{quota}}，支付金額: {{money}}",
+    "使用 Waffo Pancake 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "使用 Waffo Pancake 充值成功，充值額度: {{quota}}，支付金額: {{money}}",
+    "通过兑换码充值 {{quota}}，兑换码 ID {{id}}": "透過兌換碼充值 {{quota}}，兌換碼 ID {{id}}",
+    "订阅购买成功，套餐: {{plan}}，支付金额: {{money}}，支付方式: {{method}}": "訂閱購買成功，套餐: {{plan}}，支付金額: {{money}}，支付方式: {{method}}",
+    "使用余额购买订阅成功，套餐: {{plan}}，支付金额: {{money}}，扣除额度: {{quota}}": "使用餘額購買訂閱成功，套餐: {{plan}}，支付金額: {{money}}，扣除額度: {{quota}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + Web搜尋 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + 图片生成调用 {{symbol}}{{price}} / 1次 * {{ratioType}} {{ratio}}": " + 圖片生成調用 {{symbol}}{{price}} / 1次 * {{ratioType}} {{ratio}}",
     " + 文件搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + 檔案搜尋 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
@@ -3507,7 +3515,7 @@
     "重试": "重試",
     "重试建议": "",
     "重试连接": "重試連接",
-    "金额": "",
+    "金额": "金額",
     "钱包管理": "錢包管理",
     "链接中的{key}将自动替换为sk-xxxx，{address}将自动替换为系统设置的服务器地址，末尾不带/和/v1": "連結中的{key}將自動替換為sk-xxxx，{address}將自動替換為系統設定的伺服器位址，末尾不帶/和/v1",
     "销毁容器": "銷燬容器",
