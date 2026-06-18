@@ -24,7 +24,6 @@ import {
   Tag,
   Divider,
   Typography,
-  Badge,
 } from '@douyinfe/semi-ui';
 import {
   isRoot,
@@ -119,11 +118,19 @@ const UserInfoHeader = ({ t, userState }) => {
       {/* 当前余额和桌面版统计信息 */}
       <div className='flex items-start justify-between gap-6'>
         {/* 当前余额显示 */}
-        <Badge count={t('当前余额')} position='rightTop' type='danger'>
+        <div className='min-w-0'>
+          <Typography.Text
+            type='danger'
+            strong
+            size='small'
+            className='block mb-1'
+          >
+            {t('当前余额')}
+          </Typography.Text>
           <div className='text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide'>
             {renderQuota(userState?.user?.quota)}
           </div>
-        </Badge>
+        </div>
 
         {/* 桌面版统计信息（Semi UI 卡片） */}
         <div className='hidden lg:block flex-shrink-0'>

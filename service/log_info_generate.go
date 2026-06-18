@@ -144,6 +144,11 @@ func appendBillingInfo(relayInfo *relaycommon.RelayInfo, other map[string]interf
 		if relayInfo.SubscriptionPlanTitle != "" {
 			other["subscription_plan_title"] = relayInfo.SubscriptionPlanTitle
 		}
+		// Store the i18n title map (snapshot) so logs can localize per UI language;
+		// frontend falls back to subscription_plan_title for older logs without it.
+		if relayInfo.SubscriptionPlanTitleI18n != "" {
+			other["subscription_plan_title_i18n"] = relayInfo.SubscriptionPlanTitleI18n
+		}
 		// Compute "this request" subscription consumed + remaining
 		consumed := relayInfo.SubscriptionPreConsumed + relayInfo.SubscriptionPostDelta
 		usedFinal := relayInfo.SubscriptionAmountUsedAfterPreConsume + relayInfo.SubscriptionPostDelta

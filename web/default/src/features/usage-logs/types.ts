@@ -183,6 +183,8 @@ export interface LogOtherData {
   // Subscription billing fields
   subscription_plan_id?: string
   subscription_plan_title?: string
+  // Raw i18n JSON map of the plan title (snapshot), e.g. {"zh":"高级套餐","en":"Premium"}.
+  subscription_plan_title_i18n?: string
   subscription_id?: string
   subscription_pre_consumed?: number
   subscription_post_delta?: number

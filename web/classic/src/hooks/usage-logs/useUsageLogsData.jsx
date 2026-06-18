@@ -42,9 +42,35 @@ import {
 import { ITEMS_PER_PAGE } from '../../constants';
 import { useTableCompactMode } from '../common/useTableCompactMode';
 import ParamOverrideEntry from '../../components/table/usage-logs/components/ParamOverrideEntry';
+// Whitelisted plan i18n languages, aligned with the backend subscriptionLangs whitelist.
+const SUBSCRIPTION_PLAN_LANGS = ['zh', 'en', 'fr', 'ru', 'ja', 'vi'];
+
+// localizeSubscriptionPlanTitle picks the plan title for the current UI language from
+// the i18n JSON map snapshot stored in the log, falling back to the legacy single title.
+const localizeSubscriptionPlanTitle = (rawI18n, fallback, lang) => {
+  const fb = fallback || '';
+  if (!rawI18n) return fb;
+  let map = rawI18n;
+  if (typeof rawI18n === 'string') {
+    try {
+      map = JSON.parse(rawI18n);
+    } catch {
+      return fb;
+    }
+  }
+  if (!map || typeof map !== 'object') return fb;
+  const code = String(lang || '')
+    .toLowerCase()
+    .split(/[-_]/)[0];
+  if (code && SUBSCRIPTION_PLAN_LANGS.includes(code)) {
+    const v = map[code];
+    if (typeof v === 'string' && v.trim() !== '') return v;
+  }
+  return fb;
+};
 
 export const useLogsData = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Define column keys for selection
   const COLUMN_KEYS = {
@@ -576,7 +602,11 @@ export const useLogsData = () => {
       }
       if (other?.billing_source === 'subscription') {
         const planId = other?.subscription_plan_id;
-        const planTitle = other?.subscription_plan_title || '';
+        const planTitle = localizeSubscriptionPlanTitle(
+          other?.subscription_plan_title_i18n,
+          other?.subscription_plan_title,
+          i18n?.language,
+        );
         const subscriptionId = other?.subscription_id;
         const unit = t('额度');
         const pre = other?.subscription_pre_consumed ?? 0;

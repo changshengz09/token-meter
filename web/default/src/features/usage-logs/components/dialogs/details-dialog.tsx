@@ -392,8 +392,37 @@ interface DetailsDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+// Whitelisted plan i18n languages, aligned with the backend subscriptionLangs whitelist.
+const SUBSCRIPTION_PLAN_LANGS = ['zh', 'en', 'fr', 'ru', 'ja', 'vi']
+
+// localizeSubscriptionPlanTitle picks the plan title for the current UI language from the
+// i18n JSON map snapshot stored in the log, falling back to the legacy single title.
+function localizeSubscriptionPlanTitle(
+  rawI18n: string | undefined,
+  fallback: string | undefined,
+  lang: string | undefined,
+): string {
+  const fb = fallback || ''
+  if (!rawI18n) return fb
+  let map: Record<string, unknown>
+  try {
+    map = typeof rawI18n === 'string' ? JSON.parse(rawI18n) : rawI18n
+  } catch {
+    return fb
+  }
+  if (!map || typeof map !== 'object') return fb
+  const code = String(lang || '')
+    .toLowerCase()
+    .split(/[-_]/)[0]
+  if (code && SUBSCRIPTION_PLAN_LANGS.includes(code)) {
+    const v = map[code]
+    if (typeof v === 'string' && v.trim() !== '') return v
+  }
+  return fb
+}
+
 export function DetailsDialog(props: DetailsDialogProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { copiedText, copyToClipboard } = useCopyToClipboard({ notify: false })
   const details = props.log.content ?? ''
   const other = parseLogOther(props.log.other)
@@ -936,7 +965,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
               {other.subscription_plan_id && (
                 <DetailRow
                   label={t('Plan')}
-                  value={`#${other.subscription_plan_id} ${other.subscription_plan_title || ''}`.trim()}
+                  value={`#${other.subscription_plan_id} ${localizeSubscriptionPlanTitle(other.subscription_plan_title_i18n, other.subscription_plan_title, i18n?.language)}`.trim()}
                 />
               )}
               {other.subscription_id && (

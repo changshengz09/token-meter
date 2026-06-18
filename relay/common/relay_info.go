@@ -141,6 +141,9 @@ type RelayInfo struct {
 	// SubscriptionPlanId / SubscriptionPlanTitle are used for logging/UI display.
 	SubscriptionPlanId    int
 	SubscriptionPlanTitle string
+	// SubscriptionPlanTitleI18n is the raw i18n JSON map of the plan title (snapshot),
+	// e.g. {"zh":"高级套餐","en":"Premium"}, used so logs can localize the title per UI language.
+	SubscriptionPlanTitleI18n string
 	// RequestId is used for idempotent pre-consume/refund
 	RequestId string
 	// SubscriptionAmountTotal / SubscriptionAmountUsedAfterPreConsume are used to compute remaining in logs.
