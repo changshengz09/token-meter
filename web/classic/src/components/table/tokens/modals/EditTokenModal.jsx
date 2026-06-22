@@ -138,7 +138,7 @@ const EditTokenModal = (props) => {
     const { success, message, data } = res.data;
     if (success) {
       let localGroupOptions = Object.entries(data).map(([group, info]) => ({
-        label: info.desc,
+        label: t(info.desc),
         value: group,
         ratio: info.ratio,
       }));

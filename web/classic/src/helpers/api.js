@@ -24,6 +24,7 @@ import {
   isValidMessage,
 } from './utils';
 import axios from 'axios';
+import i18next from 'i18next';
 import { MESSAGE_ROLES } from '../constants/playground.constants';
 
 export let API = axios.create({
@@ -211,18 +212,20 @@ export const processModelsData = (data, currentModel) => {
 
 // 处理分组数据
 export const processGroupsData = (data, userGroup) => {
-  let groupOptions = Object.entries(data).map(([group, info]) => ({
-    label:
-      info.desc.length > 20 ? info.desc.substring(0, 20) + '...' : info.desc,
-    value: group,
-    ratio: info.ratio,
-    fullLabel: info.desc,
-  }));
+  let groupOptions = Object.entries(data).map(([group, info]) => {
+    const desc = i18next.t(info.desc);
+    return {
+      label: desc.length > 20 ? desc.substring(0, 20) + '...' : desc,
+      value: group,
+      ratio: info.ratio,
+      fullLabel: desc,
+    };
+  });
 
   if (groupOptions.length === 0) {
     groupOptions = [
       {
-        label: '用户分组',
+        label: i18next.t('用户分组'),
         value: '',
         ratio: 1,
       },

@@ -1,5 +1,10 @@
 {
   "translation": {
+    "今天": "Today",
+    "近 7 天": "Last 7 days",
+    "本周": "This week",
+    "近 30 天": "Last 30 days",
+    "本月": "This month",
     "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Online recharge succeeded. Amount: {{quota}}, paid: {{money}}",
     "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "Admin manual top-up succeeded. Amount: {{quota}}, paid: {{money}}",
     "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Creem recharge succeeded. Amount: {{quota}}, paid: {{money}}",

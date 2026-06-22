@@ -1,5 +1,10 @@
 {
   "translation": {
+    "今天": "Aujourd'hui",
+    "近 7 天": "7 derniers jours",
+    "本周": "Cette semaine",
+    "近 30 天": "30 derniers jours",
+    "本月": "Ce mois-ci",
     "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Recharge en ligne réussie. Montant : {{quota}}, payé : {{money}}",
     "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "Réapprovisionnement manuel par l'administrateur réussi. Montant : {{quota}}, payé : {{money}}",
     "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Recharge Creem réussie. Montant : {{quota}}, payé : {{money}}",

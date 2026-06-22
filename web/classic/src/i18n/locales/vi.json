@@ -1,5 +1,10 @@
 {
   "translation": {
+    "今天": "Hôm nay",
+    "近 7 天": "7 ngày qua",
+    "本周": "Tuần này",
+    "近 30 天": "30 ngày qua",
+    "本月": "Tháng này",
     "在线充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Nạp tiền trực tuyến thành công. Hạn mức: {{quota}}, đã thanh toán: {{money}}",
     "管理员补单成功，充值额度: {{quota}}，支付金额: {{money}}": "Quản trị viên nạp thủ công thành công. Hạn mức: {{quota}}, đã thanh toán: {{money}}",
     "使用 Creem 充值成功，充值额度: {{quota}}，支付金额: {{money}}": "Nạp qua Creem thành công. Hạn mức: {{quota}}, đã thanh toán: {{money}}",
