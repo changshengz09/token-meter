@@ -301,6 +301,12 @@ func InitResources() error {
 		return err
 	}
 
+	// 启动日志批量异步写入器（所有节点；LOG_DB 此时已就绪）
+	model.InitLogBatcher()
+
+	// 启动日志分区维护调度（master 节点、MySQL 时生效）
+	model.StartLogPartitionMaintenance()
+
 	// Initialize Redis
 	err = common.InitRedisClient()
 	if err != nil {

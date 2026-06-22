@@ -372,6 +372,13 @@ func migrateLOGDB() error {
 	if err = LOG_DB.AutoMigrate(&Log{}); err != nil {
 		return err
 	}
+	// MySQL-only：按月分区化（首次）+ 滚动维护。非 MySQL / 开关关闭时为 no-op。
+	if err = ensureLogsPartitioned(); err != nil {
+		return err
+	}
+	if err = ensureLogPartitions(); err != nil {
+		return err
+	}
 	return nil
 }
 

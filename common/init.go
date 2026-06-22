@@ -126,6 +126,18 @@ func InitEnv() {
 	SearchRateLimitEnable = GetEnvOrDefaultBool("SEARCH_RATE_LIMIT_ENABLE", true)
 	SearchRateLimitNum = GetEnvOrDefault("SEARCH_RATE_LIMIT", 10)
 	SearchRateLimitDuration = int64(GetEnvOrDefault("SEARCH_RATE_LIMIT_DURATION", 60))
+
+	// 日志批量异步写入（Part A）
+	LogBatchEnabled = GetEnvOrDefaultBool("LOG_BATCH_ENABLED", false)
+	LogBatchSize = GetEnvOrDefault("LOG_BATCH_SIZE", 500)
+	LogBatchFlushIntervalMs = GetEnvOrDefault("LOG_BATCH_FLUSH_INTERVAL_MS", 1000)
+	LogBatchQueueSize = GetEnvOrDefault("LOG_BATCH_QUEUE_SIZE", 10000)
+
+	// 日志按月分区（Part B，仅 MySQL 生效）
+	LogPartitionEnabled = GetEnvOrDefaultBool("LOG_PARTITION_ENABLED", true)
+	LogPartitionLookaheadMonths = GetEnvOrDefault("LOG_PARTITION_LOOKAHEAD_MONTHS", 3)
+	LogRetentionMonths = GetEnvOrDefault("LOG_RETENTION_MONTHS", 6)
+
 	initConstantEnv()
 }
 

@@ -34,7 +34,7 @@ func applyExplicitLogTextFilter(tx *gorm.DB, column string, value string) (*gorm
 type Log struct {
 	Id                int    `json:"id" gorm:"index:idx_created_at_id,priority:2;index:idx_user_id_id,priority:2"`
 	UserId            int    `json:"user_id" gorm:"index;index:idx_user_id_id,priority:1"`
-	CreatedAt         int64  `json:"created_at" gorm:"bigint;index:idx_created_at_id,priority:1;index:idx_created_at_type"`
+	CreatedAt         int64  `json:"created_at" gorm:"bigint;not null;index:idx_created_at_id,priority:1;index:idx_created_at_type"`
 	Type              int    `json:"type" gorm:"index:idx_created_at_type"`
 	Content           string `json:"content"`
 	Username          string `json:"username" gorm:"index;index:index_username_model_name,priority:2;default:''"`
@@ -203,13 +203,8 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 	requestId := c.GetString(common.RequestIdKey)
 	upstreamRequestId := c.GetString(common.UpstreamRequestIdKey)
 	otherStr := common.MapToJsonStr(other)
-	// 判断是否需要记录 IP
-	needRecordIp := false
-	if settingMap, err := GetUserSetting(userId, false); err == nil {
-		if settingMap.RecordIpLog {
-			needRecordIp = true
-		}
-	}
+	// 强制记录 IP：忽略用户设置，"消费"和"错误"日志始终记录客户端 IP
+	needRecordIp := true
 	log := &Log{
 		UserId:           userId,
 		Username:         username,
@@ -236,8 +231,7 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 		UpstreamRequestId: upstreamRequestId,
 		Other:             otherStr,
 	}
-	err := LOG_DB.Create(log).Error
-	if err != nil {
+	if err := submitLog(log); err != nil {
 		logger.LogError(c, "failed to record log: "+err.Error())
 	}
 }
@@ -266,13 +260,8 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 	requestId := c.GetString(common.RequestIdKey)
 	upstreamRequestId := c.GetString(common.UpstreamRequestIdKey)
 	otherStr := common.MapToJsonStr(params.Other)
-	// 判断是否需要记录 IP
-	needRecordIp := false
-	if settingMap, err := GetUserSetting(userId, false); err == nil {
-		if settingMap.RecordIpLog {
-			needRecordIp = true
-		}
-	}
+	// 强制记录 IP：忽略用户设置，"消费"和"错误"日志始终记录客户端 IP
+	needRecordIp := true
 	log := &Log{
 		UserId:           userId,
 		Username:         username,
@@ -299,8 +288,7 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 		UpstreamRequestId: upstreamRequestId,
 		Other:             otherStr,
 	}
-	err := LOG_DB.Create(log).Error
-	if err != nil {
+	if err := submitLog(log); err != nil {
 		logger.LogError(c, "failed to record log: "+err.Error())
 	}
 	if common.DataExportEnabled {
@@ -347,8 +335,7 @@ func RecordTaskBillingLog(params RecordTaskBillingLogParams) {
 		Group:     params.Group,
 		Other:     common.MapToJsonStr(params.Other),
 	}
-	err := LOG_DB.Create(log).Error
-	if err != nil {
+	if err := submitLog(log); err != nil {
 		common.SysLog("failed to record task billing log: " + err.Error())
 	}
 }

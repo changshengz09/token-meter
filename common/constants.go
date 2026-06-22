@@ -114,6 +114,17 @@ var MemoryCacheEnabled bool
 
 var LogConsumeEnabled = true
 
+// 日志批量异步写入（Part A）。仅影响高频的 Consume/Error/TaskBilling 日志。
+var LogBatchEnabled = false
+var LogBatchSize = 500
+var LogBatchFlushIntervalMs = 1000
+var LogBatchQueueSize = 10000
+
+// 日志按月分区（Part B，仅 MySQL 生效）。
+var LogPartitionEnabled = true
+var LogPartitionLookaheadMonths = 3
+var LogRetentionMonths = 6
+
 var TLSInsecureSkipVerify bool
 var InsecureTLSConfig = &tls.Config{InsecureSkipVerify: true}
 
