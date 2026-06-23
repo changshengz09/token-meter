@@ -65,6 +65,38 @@ import { StatusContext } from '../../context/Status';
 import { useTranslation } from 'react-i18next';
 import { SiDiscord } from 'react-icons/si';
 
+// 密码复杂度门槛：长度 8-20，且至少包含 大写/小写/数字/特殊字符 中的 3 类
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_LENGTH = 20;
+const PASSWORD_MIN_CATEGORIES = 3;
+
+const countPasswordCategories = (pwd) => {
+  let categories = 0;
+  if (/[a-z]/.test(pwd)) categories++;
+  if (/[A-Z]/.test(pwd)) categories++;
+  if (/[0-9]/.test(pwd)) categories++;
+  if (/[^a-zA-Z0-9]/.test(pwd)) categories++;
+  return categories;
+};
+
+// 返回密码各项约束的满足情况，用于实时校验提示
+const getPasswordChecks = (pwd) => {
+  const categories = countPasswordCategories(pwd);
+  return [
+    {
+      key: 'length',
+      label: `长度 ${PASSWORD_MIN_LENGTH} - ${PASSWORD_MAX_LENGTH} 位`,
+      ok:
+        pwd.length >= PASSWORD_MIN_LENGTH && pwd.length <= PASSWORD_MAX_LENGTH,
+    },
+    {
+      key: 'category',
+      label: `包含大写字母、小写字母、数字、特殊字符中至少 ${PASSWORD_MIN_CATEGORIES} 类（当前 ${categories}/${PASSWORD_MIN_CATEGORIES}）`,
+      ok: categories >= PASSWORD_MIN_CATEGORIES,
+    },
+  ];
+};
+
 const RegisterForm = () => {
   let navigate = useNavigate();
   const { t } = useTranslation();
@@ -136,12 +168,12 @@ const RegisterForm = () => {
     (status.custom_oauth_providers || []).length > 0;
   const hasOAuthRegisterOptions = Boolean(
     status.github_oauth ||
-      status.discord_oauth ||
-      status.oidc_enabled ||
-      status.wechat_login ||
-      status.linuxdo_oauth ||
-      status.telegram_oauth ||
-      hasCustomOAuthProviders,
+    status.discord_oauth ||
+    status.oidc_enabled ||
+    status.wechat_login ||
+    status.linuxdo_oauth ||
+    status.telegram_oauth ||
+    hasCustomOAuthProviders,
   );
 
   const [showEmailVerification, setShowEmailVerification] = useState(false);
@@ -232,7 +264,9 @@ const RegisterForm = () => {
       setUsernameAvailable(null);
       usernameCheckTimerRef.current = setTimeout(async () => {
         try {
-          const res = await API.get(`/api/user/check-username?username=${encodeURIComponent(value)}`);
+          const res = await API.get(
+            `/api/user/check-username?username=${encodeURIComponent(value)}`,
+          );
           if (res.data.success) {
             setUsernameAvailable(res.data.data.available);
           } else {
@@ -248,8 +282,15 @@ const RegisterForm = () => {
   }
 
   async function handleSubmit(e) {
-    if (password.length < 8) {
-      showInfo('密码长度不得小于 8 位！');
+    if (
+      password.length < PASSWORD_MIN_LENGTH ||
+      password.length > PASSWORD_MAX_LENGTH
+    ) {
+      showInfo('密码长度需为 8 - 20 位');
+      return;
+    }
+    if (countPasswordCategories(password) < PASSWORD_MIN_CATEGORIES) {
+      showInfo('密码需包含大写字母、小写字母、数字、特殊字符中的至少 3 类');
       return;
     }
     if (password !== password2) {
@@ -620,17 +661,27 @@ const RegisterForm = () => {
                     checkingUsername ? (
                       <Icon type='loading' spin />
                     ) : usernameAvailable === true ? (
-                      <Icon type='tick_circle' style={{ color: 'var(--semi-color-success)' }} />
+                      <Icon
+                        type='tick_circle'
+                        style={{ color: 'var(--semi-color-success)' }}
+                      />
                     ) : usernameAvailable === false ? (
-                      <Icon type='close_circle' style={{ color: 'var(--semi-color-danger)' }} />
+                      <Icon
+                        type='close_circle'
+                        style={{ color: 'var(--semi-color-danger)' }}
+                      />
                     ) : null
                   }
                 />
                 {usernameAvailable === false && (
-                  <Text type='danger' size='small'>{t('用户名已被占用')}</Text>
+                  <Text type='danger' size='small'>
+                    {t('用户名已被占用，请更换用户名')}
+                  </Text>
                 )}
                 {usernameAvailable === true && (
-                  <Text type='success' size='small'>{t('用户名可用')}</Text>
+                  <Text type='success' size='small'>
+                    {t('用户名可用')}
+                  </Text>
                 )}
 
                 <Form.Input
@@ -642,6 +693,36 @@ const RegisterForm = () => {
                   onChange={(value) => handleChange('password', value)}
                   prefix={<IconLock />}
                 />
+                <div className='mt-1'>
+                  <Text size='small' type='tertiary'>
+                    {t('密码需满足以下条件：')}
+                  </Text>
+                  <div className='mt-0.5 flex flex-col gap-0.5'>
+                    {getPasswordChecks(password).map((check) => {
+                      // 未输入时灰色待办，输入后按是否满足显示绿/红
+                      const stateColor = !password
+                        ? 'var(--semi-color-text-2)'
+                        : check.ok
+                          ? 'var(--semi-color-success)'
+                          : 'var(--semi-color-danger)';
+                      return (
+                        <div
+                          key={check.key}
+                          className='flex items-center gap-1'
+                          style={{ color: stateColor }}
+                        >
+                          <Icon
+                            type={check.ok ? 'tick_circle' : 'close_circle'}
+                            size='small'
+                          />
+                          <Text size='small' style={{ color: stateColor }}>
+                            {t(check.label)}
+                          </Text>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
                 <Form.Input
                   field='password2'
@@ -652,6 +733,16 @@ const RegisterForm = () => {
                   onChange={(value) => handleChange('password2', value)}
                   prefix={<IconLock />}
                 />
+                {password2 && password !== password2 && (
+                  <Text type='danger' size='small'>
+                    {t('两次输入的密码不一致')}
+                  </Text>
+                )}
+                {password2 && password === password2 && (
+                  <Text type='success' size='small'>
+                    {t('两次输入的密码一致')}
+                  </Text>
+                )}
 
                 {showEmailVerification && (
                   <>
@@ -832,8 +923,7 @@ const RegisterForm = () => {
         style={{ top: '50%', left: '-120px' }}
       />
       <div className='w-full max-w-sm mt-[60px]'>
-        {showEmailRegister ||
-        !hasOAuthRegisterOptions
+        {showEmailRegister || !hasOAuthRegisterOptions
           ? renderEmailRegisterForm()
           : renderOAuthOptions()}
         {renderWeChatLoginModal()}
