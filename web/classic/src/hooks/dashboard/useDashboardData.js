@@ -26,7 +26,12 @@ import { TIME_OPTIONS } from '../../constants/dashboard.constants';
 import { useIsMobile } from '../common/useIsMobile';
 import { useMinimumLoadingTime } from '../common/useMinimumLoadingTime';
 
-export const useDashboardData = (userState, userDispatch, statusState) => {
+export const useDashboardData = (
+  userState,
+  userDispatch,
+  statusState,
+  statusDispatch,
+) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -213,6 +218,20 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     }
   }, [activeUptimeTab]);
 
+  const loadStatusData = useCallback(async () => {
+    try {
+      const res = await API.get('/api/status', {
+        disableDuplicate: true,
+      });
+      const { success, data } = res.data;
+      if (success) {
+        statusDispatch({ type: 'set', payload: data });
+      }
+    } catch (err) {
+      console.error('Failed to refresh status:', err);
+    }
+  }, [statusDispatch]);
+
   const loadUserQuotaData = useCallback(async () => {
     if (!isAdminUser) return [];
     try {
@@ -247,8 +266,9 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const refresh = useCallback(async () => {
     const data = await loadQuotaData();
     await loadUptimeData();
+    await loadStatusData();
     return data;
-  }, [loadQuotaData, loadUptimeData]);
+  }, [loadQuotaData, loadUptimeData, loadStatusData]);
 
   const handleSearchConfirm = useCallback(
     async (updateChartDataCallback) => {
@@ -334,6 +354,7 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     loadQuotaData,
     loadUserQuotaData,
     loadUptimeData,
+    loadStatusData,
     getUserData,
     refresh,
     handleSearchConfirm,

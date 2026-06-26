@@ -58,7 +58,12 @@ const Dashboard = () => {
   const [statusState, statusDispatch] = useContext(StatusContext);
 
   // ========== 主要数据管理 ==========
-  const dashboardData = useDashboardData(userState, userDispatch, statusState);
+  const dashboardData = useDashboardData(
+    userState,
+    userDispatch,
+    statusState,
+    statusDispatch,
+  );
 
   // ========== 图表管理 ==========
   const dashboardCharts = useDashboardCharts(
@@ -103,6 +108,7 @@ const Dashboard = () => {
     });
     await loadUserData();
     await dashboardData.loadUptimeData();
+    await dashboardData.loadStatusData();
   };
 
   const handleRefresh = async () => {

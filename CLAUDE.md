@@ -135,3 +135,12 @@ For request structs that are parsed from client JSON and then re-marshaled to up
 ### Rule 7: Billing Expression System — Read `pkg/billingexpr/expr.md`
 
 When working on tiered/dynamic billing (expression-based pricing), you MUST read `pkg/billingexpr/expr.md` first. It documents the design philosophy, expression language (variables, functions, examples), full system architecture (editor → storage → pre-consume → settlement → log display), token normalization rules (`p`/`c` auto-exclusion), quota conversion, and expression versioning. All code changes to the billing expression system must follow the patterns described in that document.
+
+### Rule 8: Primary Frontend is `web/classic`
+
+This project uses **`web/classic`** (React 18 + Vite + Semi Design) as the primary frontend, chosen for its clear, intuitive UI style. All frontend feature work, bug fixes, and i18n changes MUST go to `web/classic` by default.
+
+- Do NOT modify `web/default` unless explicitly asked. Never assume `web/default` is the target just because it is the upstream flagship.
+- When porting upstream new-api features, port the *logic* into `web/classic`'s Semi Design components rather than switching to `web/default`.
+- Keep backend (Go) API shapes neutral so they don't get locked to classic — avoid backend changes that would break `web/default`.
+- classic-specific notes: uses `.jsx` (no TypeScript), `pages/` routing, and ships an extra `zh-TW.json` (Traditional Chinese) locale.
