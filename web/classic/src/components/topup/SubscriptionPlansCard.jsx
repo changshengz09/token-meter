@@ -441,6 +441,13 @@ const SubscriptionPlansCard = ({
                     const isActive =
                       subscription?.status === 'active' && !isExpired;
 
+                    const startTimeValue = subscription?.start_time
+                      ? new Date(subscription.start_time * 1000).toLocaleString()
+                      : '-';
+                    const endTimeValue = new Date(
+                      (subscription?.end_time || 0) * 1000,
+                    ).toLocaleString();
+
                     return (
                       <div key={subscription?.id || subIndex}>
                         {/* 订阅概要 */}
@@ -450,21 +457,26 @@ const SubscriptionPlansCard = ({
                               {planTitle ? (
                                 <>
                                   <span
-                                    className='text-sm font-bold'
+                                    className='text-[14px] font-semibold tracking-[0.01em]'
                                     style={{
-                                      color: isActive
-                                        ? 'var(--semi-color-primary)'
-                                        : 'var(--semi-color-text-2)',
+                                      color: 'var(--semi-color-primary-active)',
+                                      opacity: 0.96,
                                     }}
                                   >
                                     {planTitle}
                                   </span>
-                                  <span className='text-gray-400'>
+                                  <span className='text-[12px] text-[var(--semi-color-text-3)]'>
                                     · {t('订阅')} #{subscription?.id}
                                   </span>
                                 </>
                               ) : (
-                                <span className='font-medium'>
+                                <span
+                                  className='text-[14px] font-semibold tracking-[0.01em]'
+                                  style={{
+                                    color: 'var(--semi-color-primary-active)',
+                                    opacity: 0.96,
+                                  }}
+                                >
                                   {t('订阅')} #{subscription?.id}
                                 </span>
                               )}
@@ -489,61 +501,84 @@ const SubscriptionPlansCard = ({
                             )}
                           </div>
                           {isActive && (
-                            <span className='text-gray-500'>
-                              {t('剩余')} {remainDays} {t('天')}
+                            <span className='font-mono text-[13px] tracking-wide text-[var(--semi-color-text-2)]'>
+                              {t('剩余')}{' '}
+                              <span
+                                className='font-semibold'
+                                style={{ color: 'var(--semi-color-danger)' }}
+                              >
+                                {remainDays}
+                              </span>{' '}
+                              {t('天')}
                             </span>
                           )}
                         </div>
-                        <div className='text-xs text-gray-500 mb-2'>
+                        <div className='text-[12px] text-[var(--semi-color-text-2)] mb-2'>
+                          {t('订阅时间')}:{' '}
+                          <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                            {startTimeValue}
+                          </span>
+                          <span className='mx-2 text-[var(--semi-color-text-3)]'>·</span>
                           {isActive
-                            ? t('至')
+                            ? t('有效期至')
                             : isCancelled
                               ? t('作废于')
-                              : t('过期于')}{' '}
-                          {new Date(
-                            (subscription?.end_time || 0) * 1000,
-                          ).toLocaleString()}
+                              : t('过期于')}
+                          :{' '}
+                          <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                            {endTimeValue}
+                          </span>
                         </div>
                         {isActive && subscription?.next_reset_time > 0 && (
-                          <div className='text-xs text-gray-500 mb-2'>
+                          <div className='text-[12px] text-[var(--semi-color-text-2)] mb-2'>
                             {t('下一次重置')}:{' '}
-                            {new Date(
-                              subscription.next_reset_time * 1000,
-                            ).toLocaleString()}
+                            <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                              {new Date(
+                                subscription.next_reset_time * 1000,
+                              ).toLocaleString()}
+                            </span>
                           </div>
                         )}
-                        <div className='text-xs text-gray-500 mb-2'>
+                        <div className='text-[12px] text-[var(--semi-color-text-2)] mb-2'>
                           {t('总额度')}:{' '}
                           {totalAmount > 0 ? (
                             <>
-                              <span>
+                              <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
                                 {renderQuota(usedAmount)}/
                                 {renderQuota(totalAmount)}
                               </span>
                               <span
+                                className='ml-2'
                                 style={
                                   isExhausted
                                     ? { color: 'var(--semi-color-danger)' }
-                                    : undefined
+                                    : { color: 'var(--semi-color-text-2)' }
                                 }
                               >
-                                {' '}
-                                · {t('剩余')} {renderQuota(remainAmount)}
+                                · {t('剩余')}{' '}
+                                <span className='font-semibold text-[var(--semi-color-text-0)]'>
+                                  {renderQuota(remainAmount)}
+                                </span>
                                 <span className='ml-2'>
-                                  {t('已用')} {usagePercent}%
+                                  {t('已用')}{' '}
+                                  <span className='font-medium text-[var(--semi-color-warning)]'>
+                                    {usagePercent}%
+                                  </span>
                                 </span>
                               </span>
                             </>
                           ) : (
-                            t('不限')
+                            <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                              {t('不限')}
+                            </span>
                           )}
                         </div>
                         {quotaDisplayType !== 'TOKENS' && (
-                            <div className='text-xs text-gray-400 mb-2'>
-                              {'Token'}:{' '}
+                            <div className='text-[12px] text-[var(--semi-color-text-2)] mb-2'>
+                              Token:{' '}
                               {totalAmount > 0 ? (
                                 <>
-                                  <span>
+                                  <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
                                     {renderTokenCount(usedAmount)}/
                                     {renderTokenCount(totalAmount)}
                                   </span>
@@ -552,15 +587,25 @@ const SubscriptionPlansCard = ({
                                     style={
                                       isExhausted
                                         ? { color: 'var(--semi-color-danger)' }
-                                        : undefined
+                                        : { color: 'var(--semi-color-text-2)' }
                                     }
                                   >
-                                    · {t('剩余')} {renderTokenCount(remainAmount)}{' '}
-                                    {t('已用')} {usagePercent}%
+                                    · {t('剩余')}{' '}
+                                    <span className='font-semibold text-[var(--semi-color-text-0)]'>
+                                      {renderTokenCount(remainAmount)}
+                                    </span>
+                                    <span className='ml-2'>
+                                      {t('已用')}{' '}
+                                      <span className='font-medium text-[var(--semi-color-warning)]'>
+                                        {usagePercent}%
+                                      </span>
+                                    </span>
                                   </span>
                                 </>
                               ) : (
-                                t('不限')
+                                <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                                  {t('不限')}
+                                </span>
                               )}
                             </div>
                           )}
