@@ -59,6 +59,14 @@ const StatsCards = ({
                     </Avatar>
                     <div>
                       <div className='text-xs text-gray-500'>{item.title}</div>
+                      {item.subtitle && (
+                        <div
+                          className='text-xs leading-5'
+                          style={{ color: 'var(--semi-color-text-3)' }}
+                        >
+                          {item.subtitle}
+                        </div>
+                      )}
                       <div className='text-lg font-semibold'>
                         <Skeleton
                           loading={loading}

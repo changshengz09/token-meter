@@ -39,7 +39,7 @@ export const useDashboardStats = (
   times,
   trendData,
   performanceMetrics,
-  navigate,
+  selectedDateRangeText,
   t,
 ) => {
   const groupedStatsData = useMemo(
@@ -50,6 +50,7 @@ export const useDashboardStats = (
         items: [
           {
             title: t('当前余额'),
+            subtitle: t('当前可用额度'),
             value: renderQuota(userState?.user?.quota),
             icon: <IconMoneyExchangeStroked />,
             avatarColor: 'blue',
@@ -58,6 +59,7 @@ export const useDashboardStats = (
           },
           {
             title: t('历史消耗'),
+            subtitle: t('累计已消耗额度'),
             value: renderQuota(userState?.user?.used_quota),
             icon: <IconHistogram />,
             avatarColor: 'purple',
@@ -71,7 +73,8 @@ export const useDashboardStats = (
         color: 'bg-green-50',
         items: [
           {
-            title: t('请求次数'),
+            title: t('总请求次数'),
+            subtitle: t('累计请求次数'),
             value: userState.user?.request_count,
             icon: <IconSend />,
             avatarColor: 'green',
@@ -80,6 +83,7 @@ export const useDashboardStats = (
           },
           {
             title: t('统计次数'),
+            subtitle: t('所选时间范围内请求次数'),
             value: times,
             icon: <IconPulse />,
             avatarColor: 'cyan',
@@ -94,6 +98,7 @@ export const useDashboardStats = (
         items: [
           {
             title: t('统计额度'),
+            subtitle: t('所选时间范围内消耗额度'),
             value: renderQuota(consumeQuota),
             icon: <IconCoinMoneyStroked />,
             avatarColor: 'yellow',
@@ -102,6 +107,7 @@ export const useDashboardStats = (
           },
           {
             title: t('统计Tokens'),
+            subtitle: t('所选时间范围内消耗 Tokens'),
             value: isNaN(consumeTokens) ? 0 : consumeTokens.toLocaleString(),
             icon: <IconTextStroked />,
             avatarColor: 'pink',
@@ -116,6 +122,7 @@ export const useDashboardStats = (
         items: [
           {
             title: t('平均RPM'),
+            subtitle: t('所选时间范围内平均每分钟请求数'),
             value: performanceMetrics.avgRPM,
             icon: <IconStopwatchStroked />,
             avatarColor: 'indigo',
@@ -124,6 +131,7 @@ export const useDashboardStats = (
           },
           {
             title: t('平均TPM'),
+            subtitle: t('所选时间范围内平均每分钟 Tokens'),
             value: performanceMetrics.avgTPM,
             icon: <IconTypograph />,
             avatarColor: 'orange',
@@ -142,7 +150,7 @@ export const useDashboardStats = (
       consumeTokens,
       trendData,
       performanceMetrics,
-      navigate,
+      selectedDateRangeText,
       t,
     ],
   );

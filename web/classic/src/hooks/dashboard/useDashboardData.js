@@ -21,7 +21,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API, isAdmin, showError, timestamp2string } from '../../helpers';
-import { getDefaultTime, getInitialTimestamp } from '../../helpers/dashboard';
+import { getDefaultTime, getInitialDateRange } from '../../helpers/dashboard';
 import { TIME_OPTIONS } from '../../constants/dashboard.constants';
 import { useIsMobile } from '../common/useIsMobile';
 import { useMinimumLoadingTime } from '../common/useMinimumLoadingTime';
@@ -44,12 +44,13 @@ export const useDashboardData = (
   const showLoading = useMinimumLoadingTime(loading);
 
   // ========== 输入状态 ==========
+  const initialDateRange = useMemo(() => getInitialDateRange(), []);
   const [inputs, setInputs] = useState({
     username: '',
     token_name: '',
     model_name: '',
-    start_timestamp: getInitialTimestamp(),
-    end_timestamp: timestamp2string(new Date().getTime() / 1000 + 3600),
+    start_timestamp: initialDateRange.start_timestamp,
+    end_timestamp: initialDateRange.end_timestamp,
     channel: '',
     data_export_default_time: '',
   });
@@ -110,6 +111,21 @@ export const useDashboardData = (
     [t],
   );
 
+  const formatDateTime = useCallback((value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (value instanceof Date) {
+      return timestamp2string(Math.floor(value.getTime() / 1000));
+    }
+
+    const parsed = Date.parse(value);
+    if (!Number.isNaN(parsed)) {
+      return timestamp2string(Math.floor(parsed / 1000));
+    }
+
+    return '';
+  }, []);
+
   const performanceMetrics = useMemo(() => {
     const { start_timestamp, end_timestamp } = inputs;
     const timeDiff =
@@ -123,6 +139,26 @@ export const useDashboardData = (
 
     return { avgRPM, avgTPM, timeDiff };
   }, [times, consumeTokens, inputs.start_timestamp, inputs.end_timestamp]);
+
+  const selectedGranularityLabel = useMemo(() => {
+    return (
+      timeOptions.find((option) => option.value === dataExportDefaultTime)?.label ||
+      t('小时')
+    );
+  }, [dataExportDefaultTime, timeOptions, t]);
+
+  const selectedDateRangeText = useMemo(() => {
+    const start = formatDateTime(inputs.start_timestamp);
+    const end = formatDateTime(inputs.end_timestamp);
+    return t('{{start}} 至 {{end}}', { start, end });
+  }, [formatDateTime, inputs.end_timestamp, inputs.start_timestamp, t]);
+
+  const selectedDateRangeSummary = useMemo(() => {
+    return t('统计范围：{{range}} · 粒度：{{granularity}}', {
+      range: selectedDateRangeText,
+      granularity: selectedGranularityLabel,
+    });
+  }, [selectedDateRangeText, selectedGranularityLabel, t]);
 
   const getGreeting = useMemo(() => {
     const hours = new Date().getHours();
@@ -337,6 +373,9 @@ export const useDashboardData = (
 
     // 计算值
     timeOptions,
+    selectedGranularityLabel,
+    selectedDateRangeText,
+    selectedDateRangeSummary,
     performanceMetrics,
     getGreeting,
     isAdminUser,

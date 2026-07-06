@@ -18,6 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useContext, useEffect } from 'react';
+import { Button, Tag } from '@douyinfe/semi-ui';
+import { CalendarRange, RefreshCw, Search } from 'lucide-react';
 import { getRelativeTime } from '../../helpers';
 import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
@@ -86,7 +88,7 @@ const Dashboard = () => {
     dashboardData.times,
     dashboardData.trendData,
     dashboardData.performanceMetrics,
-    dashboardData.navigate,
+    dashboardData.selectedDateRangeText,
     dashboardData.t,
   );
 
@@ -161,11 +163,56 @@ const Dashboard = () => {
       <DashboardHeader
         getGreeting={dashboardData.getGreeting}
         greetingVisible={dashboardData.greetingVisible}
-        showSearchModal={dashboardData.showSearchModal}
-        refresh={handleRefresh}
-        loading={dashboardData.loading}
-        t={dashboardData.t}
       />
+
+      <div className='mb-4 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm'>
+        <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+          <div className='flex items-start gap-3'>
+            <div className='mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-500'>
+              <CalendarRange size={18} />
+            </div>
+            <div className='min-w-0'>
+              <div className='text-[13px] font-semibold tracking-[0.18em] text-slate-600'>
+                {dashboardData.t('统计范围')}
+              </div>
+              <div className='mt-1 flex flex-wrap items-center gap-2'>
+                <div className='text-sm font-medium text-gray-900'>
+                  {dashboardData.selectedDateRangeText}
+                </div>
+                <Tag
+                  size='small'
+                  shape='circle'
+                  color='white'
+                  className='border border-blue-100 bg-blue-50 !text-blue-600'
+                >
+                  {dashboardData.t('粒度：{{granularity}}', {
+                    granularity: dashboardData.selectedGranularityLabel,
+                  })}
+                </Tag>
+              </div>
+            </div>
+          </div>
+          <div className='flex gap-3 md:justify-end'>
+            <Button
+              type='tertiary'
+              icon={<Search size={16} />}
+              onClick={dashboardData.showSearchModal}
+              className='bg-green-500 text-white hover:bg-green-600 hover:bg-opacity-80 !rounded-full'
+            >
+              {dashboardData.t('查询')}
+            </Button>
+            <Button
+              type='tertiary'
+              icon={<RefreshCw size={16} />}
+              onClick={handleRefresh}
+              loading={dashboardData.loading}
+              className='bg-blue-500 text-white hover:bg-blue-600 hover:bg-opacity-80 !rounded-full'
+            >
+              {dashboardData.t('刷新')}
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <SearchModal
         searchModalVisible={dashboardData.searchModalVisible}

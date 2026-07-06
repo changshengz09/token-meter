@@ -48,18 +48,35 @@ export const getTimeInterval = (timeType, isSeconds = false) => {
   return isSeconds ? intervals.seconds : intervals.minutes;
 };
 
-export const getInitialTimestamp = () => {
+export const getInitialDateRange = () => {
   const defaultTime = getDefaultTime();
-  const now = new Date().getTime() / 1000;
+  const end = new Date();
+  end.setHours(23, 59, 59, 0);
+
+  const start = new Date(end);
 
   switch (defaultTime) {
     case 'hour':
-      return timestamp2string(now - 86400);
+      start.setHours(0, 0, 0, 0);
+      break;
     case 'week':
-      return timestamp2string(now - 86400 * 30);
+      start.setSeconds(start.getSeconds() + 1);
+      start.setDate(start.getDate() - 30);
+      break;
     default:
-      return timestamp2string(now - 86400 * 7);
+      start.setSeconds(start.getSeconds() + 1);
+      start.setDate(start.getDate() - 7);
+      break;
   }
+
+  return {
+    start_timestamp: timestamp2string(Math.floor(start.getTime() / 1000)),
+    end_timestamp: timestamp2string(Math.floor(end.getTime() / 1000)),
+  };
+};
+
+export const getInitialTimestamp = () => {
+  return getInitialDateRange().start_timestamp;
 };
 
 // ========== 数据处理工具函数 ==========

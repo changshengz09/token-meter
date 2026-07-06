@@ -473,6 +473,165 @@ func GetUserLogs(userId int, logType int, startTimestamp int64, endTimestamp int
 	return logs, total, err
 }
 
+type LogUsageSummary struct {
+	RequestCount        int64    `json:"request_count"`
+	Quota               int64    `json:"quota"`
+	TokenTotal          int64    `json:"token_total"`
+	InputTokens         int64    `json:"input_tokens"`
+	OutputTokens        int64    `json:"output_tokens"`
+	CacheHitTokens      int64    `json:"cache_hit_tokens"`
+	CacheWriteTokens    int64    `json:"cache_write_tokens"`
+	CacheHitRate        *float64 `json:"cache_hit_rate"`
+	AvgDurationSeconds  *float64 `json:"avg_duration_seconds"`
+	DurationSampleCount int64    `json:"duration_sample_count"`
+	ActualQuota         int64    `json:"actual_quota"`
+	StandardQuota       *int64   `json:"standard_quota"`
+}
+
+type logUsageSummaryAggregate struct {
+	RequestCount        int64 `gorm:"column:request_count"`
+	Quota               int64 `gorm:"column:quota"`
+	OutputTokens        int64 `gorm:"column:output_tokens"`
+	DurationTotal       int64 `gorm:"column:duration_total"`
+	DurationSampleCount int64 `gorm:"column:duration_sample_count"`
+}
+
+type logUsageSummaryOther struct {
+	CacheTokens           int64  `json:"cache_tokens"`
+	CacheCreationTokens   int64  `json:"cache_creation_tokens"`
+	CacheCreationTokens5m int64  `json:"cache_creation_tokens_5m"`
+	CacheCreationTokens1h int64  `json:"cache_creation_tokens_1h"`
+	CacheWriteTokens      int64  `json:"cache_write_tokens"`
+	InputTokensTotal      int64  `json:"input_tokens_total"`
+	UsageSemantic         string `json:"usage_semantic"`
+}
+
+type logUsageSummaryTokenRow struct {
+	Id               int64  `gorm:"column:id"`
+	PromptTokens     int64  `gorm:"column:prompt_tokens"`
+	CompletionTokens int64  `gorm:"column:completion_tokens"`
+	Other            string `gorm:"column:other"`
+}
+
+func positiveInt64(value int64) int64 {
+	if value > 0 {
+		return value
+	}
+	return 0
+}
+
+func cacheWriteTokensForLog(other logUsageSummaryOther) int64 {
+	cacheCreationTokens := positiveInt64(other.CacheCreationTokens)
+	cacheCreationTokens5m := positiveInt64(other.CacheCreationTokens5m)
+	cacheCreationTokens1h := positiveInt64(other.CacheCreationTokens1h)
+	if cacheCreationTokens5m > 0 || cacheCreationTokens1h > 0 {
+		splitCacheWriteTokens := cacheCreationTokens5m + cacheCreationTokens1h
+		if cacheCreationTokens > splitCacheWriteTokens {
+			return cacheCreationTokens
+		}
+		return splitCacheWriteTokens
+	}
+	if other.CacheWriteTokens > 0 {
+		return other.CacheWriteTokens
+	}
+	return cacheCreationTokens
+}
+
+func buildLogUsageSummaryQuery(logType int, startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string, channel int, group string, requestId string, userId int) (*gorm.DB, error) {
+	if logType != LogTypeUnknown && logType != LogTypeConsume {
+		return nil, nil
+	}
+
+	tx := LOG_DB.Model(&Log{}).Where("logs.type = ?", LogTypeConsume)
+	var err error
+	if userId > 0 {
+		tx = tx.Where("logs.user_id = ?", userId)
+	} else if tx, err = applyExplicitLogTextFilter(tx, "logs.username", username); err != nil {
+		return nil, err
+	}
+	if tokenName != "" {
+		tx = tx.Where("logs.token_name = ?", tokenName)
+	}
+	if requestId != "" {
+		tx = tx.Where("logs.request_id = ?", requestId)
+	}
+	if startTimestamp != 0 {
+		tx = tx.Where("logs.created_at >= ?", startTimestamp)
+	}
+	if endTimestamp != 0 {
+		tx = tx.Where("logs.created_at <= ?", endTimestamp)
+	}
+	if tx, err = applyExplicitLogTextFilter(tx, "logs.model_name", modelName); err != nil {
+		return nil, err
+	}
+	if channel != 0 {
+		tx = tx.Where("logs.channel_id = ?", channel)
+	}
+	if group != "" {
+		tx = tx.Where("logs."+logGroupCol+" = ?", group)
+	}
+	return tx, nil
+}
+
+func GetLogUsageSummary(logType int, startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string, channel int, group string, requestId string, userId int) (summary LogUsageSummary, err error) {
+	tx, err := buildLogUsageSummaryQuery(logType, startTimestamp, endTimestamp, modelName, username, tokenName, channel, group, requestId, userId)
+	if err != nil || tx == nil {
+		return summary, err
+	}
+
+	var aggregate logUsageSummaryAggregate
+	if err = tx.Session(&gorm.Session{}).Select("COUNT(*) AS request_count, COALESCE(SUM(quota), 0) AS quota, COALESCE(SUM(completion_tokens), 0) AS output_tokens, COALESCE(SUM(CASE WHEN use_time > 0 THEN use_time ELSE 0 END), 0) AS duration_total, COALESCE(SUM(CASE WHEN use_time > 0 THEN 1 ELSE 0 END), 0) AS duration_sample_count").Scan(&aggregate).Error; err != nil {
+		common.SysError("failed to query log usage summary: " + err.Error())
+		return summary, errors.New("查询统计数据失败")
+	}
+
+	summary.RequestCount = aggregate.RequestCount
+	summary.Quota = aggregate.Quota
+	summary.OutputTokens = aggregate.OutputTokens
+	summary.DurationSampleCount = aggregate.DurationSampleCount
+	summary.ActualQuota = aggregate.Quota
+	if aggregate.DurationSampleCount > 0 {
+		avgDurationSeconds := float64(aggregate.DurationTotal) / float64(aggregate.DurationSampleCount)
+		summary.AvgDurationSeconds = &avgDurationSeconds
+	}
+
+	var cacheHitDenominator int64
+	rows := make([]logUsageSummaryTokenRow, 0, 1000)
+	if err = tx.Session(&gorm.Session{}).Select("id, prompt_tokens, completion_tokens, other").Order("logs.id").FindInBatches(&rows, 1000, func(batchTx *gorm.DB, batch int) error {
+		for _, row := range rows {
+			var other logUsageSummaryOther
+			if row.Other != "" {
+				_ = common.UnmarshalJsonStr(row.Other, &other)
+			}
+			cacheHitTokens := positiveInt64(other.CacheTokens)
+			cacheWriteTokens := cacheWriteTokensForLog(other)
+			effectiveInputTokens := positiveInt64(row.PromptTokens)
+			if other.InputTokensTotal > 0 {
+				effectiveInputTokens = other.InputTokensTotal
+			} else if other.UsageSemantic == "anthropic" {
+				effectiveInputTokens += cacheHitTokens
+			}
+
+			summary.InputTokens += effectiveInputTokens
+			summary.CacheHitTokens += cacheHitTokens
+			summary.CacheWriteTokens += cacheWriteTokens
+			cacheHitDenominator += effectiveInputTokens
+		}
+		return nil
+	}).Error; err != nil {
+		common.SysError("failed to scan log usage summary details: " + err.Error())
+		return summary, errors.New("查询统计数据失败")
+	}
+
+	summary.TokenTotal = summary.InputTokens + summary.OutputTokens
+	if cacheHitDenominator > 0 {
+		cacheHitRate := float64(summary.CacheHitTokens) / float64(cacheHitDenominator)
+		summary.CacheHitRate = &cacheHitRate
+	}
+
+	return summary, nil
+}
+
 type Stat struct {
 	Quota int `json:"quota"`
 	Rpm   int `json:"rpm"`
