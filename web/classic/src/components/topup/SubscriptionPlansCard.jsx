@@ -305,7 +305,12 @@ const SubscriptionPlansCard = ({
           <Card className='!rounded-xl w-full' bodyStyle={{ padding: '12px' }}>
             <div className='flex items-center justify-between mb-2 gap-3'>
               <div className='flex items-center gap-2 flex-1 min-w-0'>
-                <Text strong>{t('我的订阅')}</Text>
+                <Text
+                  strong
+                  className='text-[15px] font-semibold text-[var(--semi-color-text-0)]'
+                >
+                  {t('我的订阅')}
+                </Text>
                 {hasActiveSubscription ? (
                   <Tag
                     color='white'
@@ -457,9 +462,9 @@ const SubscriptionPlansCard = ({
                               {planTitle ? (
                                 <>
                                   <span
-                                    className='text-[14px] font-semibold tracking-[0.01em]'
+                                    className='inline-flex items-center rounded-full border border-[var(--semi-color-border)] bg-[var(--semi-color-fill-0)] px-2 py-0.5 text-[13px] font-semibold tracking-[0.01em] shadow-sm'
                                     style={{
-                                      color: 'var(--semi-color-primary-active)',
+                                      color: 'var(--semi-color-text-0)',
                                       opacity: 0.96,
                                     }}
                                   >
@@ -471,9 +476,9 @@ const SubscriptionPlansCard = ({
                                 </>
                               ) : (
                                 <span
-                                  className='text-[14px] font-semibold tracking-[0.01em]'
+                                  className='inline-flex items-center rounded-full border border-[var(--semi-color-border)] bg-[var(--semi-color-fill-0)] px-2 py-0.5 text-[13px] font-semibold tracking-[0.01em] shadow-sm'
                                   style={{
-                                    color: 'var(--semi-color-primary-active)',
+                                    color: 'var(--semi-color-text-0)',
                                     opacity: 0.96,
                                   }}
                                 >
@@ -501,7 +506,7 @@ const SubscriptionPlansCard = ({
                             )}
                           </div>
                           {isActive && (
-                            <span className='font-mono text-[13px] tracking-wide text-[var(--semi-color-text-2)]'>
+                            <span className='font-mono text-[13px] tracking-wide text-[var(--semi-color-text-1)]'>
                               {t('剩余')}{' '}
                               <span
                                 className='font-semibold'
@@ -515,7 +520,7 @@ const SubscriptionPlansCard = ({
                         </div>
                         <div className='text-[12px] text-[var(--semi-color-text-2)] mb-2'>
                           {t('订阅时间')}:{' '}
-                          <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                          <span className='font-mono text-[13px] text-[var(--semi-color-text-1)]'>
                             {startTimeValue}
                           </span>
                           <span className='mx-2 text-[var(--semi-color-text-3)]'>·</span>
@@ -525,14 +530,14 @@ const SubscriptionPlansCard = ({
                               ? t('作废于')
                               : t('过期于')}
                           :{' '}
-                          <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                          <span className='font-mono text-[13px] text-[var(--semi-color-text-1)]'>
                             {endTimeValue}
                           </span>
                         </div>
                         {isActive && subscription?.next_reset_time > 0 && (
                           <div className='text-[12px] text-[var(--semi-color-text-2)] mb-2'>
                             {t('下一次重置')}:{' '}
-                            <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                            <span className='font-mono text-[13px] text-[var(--semi-color-text-1)]'>
                               {new Date(
                                 subscription.next_reset_time * 1000,
                               ).toLocaleString()}
@@ -543,7 +548,7 @@ const SubscriptionPlansCard = ({
                           {t('总额度')}:{' '}
                           {totalAmount > 0 ? (
                             <>
-                              <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                              <span className='font-mono text-[13px] text-[var(--semi-color-text-1)]'>
                                 {renderQuota(usedAmount)}/
                                 {renderQuota(totalAmount)}
                               </span>
@@ -556,19 +561,19 @@ const SubscriptionPlansCard = ({
                                 }
                               >
                                 · {t('剩余')}{' '}
-                                <span className='font-semibold text-[var(--semi-color-text-0)]'>
+                                <span className='font-normal text-[var(--semi-color-warning)]'>
                                   {renderQuota(remainAmount)}
                                 </span>
                                 <span className='ml-2'>
                                   {t('已用')}{' '}
-                                  <span className='font-medium text-[var(--semi-color-warning)]'>
+                                  <span className='font-normal text-[var(--semi-color-warning)]'>
                                     {usagePercent}%
                                   </span>
                                 </span>
                               </span>
                             </>
                           ) : (
-                            <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                            <span className='font-mono text-[13px] text-[var(--semi-color-text-1)]'>
                               {t('不限')}
                             </span>
                           )}
@@ -578,7 +583,7 @@ const SubscriptionPlansCard = ({
                               Token:{' '}
                               {totalAmount > 0 ? (
                                 <>
-                                  <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                                  <span className='font-mono text-[13px] text-[var(--semi-color-text-1)]'>
                                     {renderTokenCount(usedAmount)}/
                                     {renderTokenCount(totalAmount)}
                                   </span>
@@ -591,19 +596,19 @@ const SubscriptionPlansCard = ({
                                     }
                                   >
                                     · {t('剩余')}{' '}
-                                    <span className='font-semibold text-[var(--semi-color-text-0)]'>
+                                    <span className='font-normal text-[var(--semi-color-warning)]'>
                                       {renderTokenCount(remainAmount)}
                                     </span>
                                     <span className='ml-2'>
                                       {t('已用')}{' '}
-                                      <span className='font-medium text-[var(--semi-color-warning)]'>
+                                      <span className='font-normal text-[var(--semi-color-warning)]'>
                                         {usagePercent}%
                                       </span>
                                     </span>
                                   </span>
                                 </>
                               ) : (
-                                <span className='font-mono text-[13px] text-[var(--semi-color-text-0)]'>
+                                <span className='font-mono text-[13px] text-[var(--semi-color-text-1)]'>
                                   {t('不限')}
                                 </span>
                               )}
