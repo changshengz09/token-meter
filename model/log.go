@@ -79,6 +79,14 @@ const (
 	TopupEventSubscriptionBalancePurchase = "subscription_balance_purchase"
 )
 
+const (
+	InviteRewardEvent             = "invite_reward"
+	InviteRewardInviteeBonus      = "invitee_bonus"
+	InviteRewardInviterBonus      = "inviter_bonus"
+	RegistrationRewardEvent       = "registration_reward"
+	RegistrationRewardNewUserGift = "new_user_gift"
+)
+
 func formatUserLogs(logs []*Log, startIdx int) {
 	for i := range logs {
 		logs[i].ChannelName = ""
@@ -117,6 +125,38 @@ func RecordLog(userId int, logType int, content string) {
 	if err != nil {
 		common.SysLog("failed to record log: " + err.Error())
 	}
+}
+
+func RecordSystemLogWithOther(userId int, other map[string]interface{}) {
+	username, _ := GetUsernameById(userId, false)
+	log := &Log{
+		UserId:    userId,
+		Username:  username,
+		CreatedAt: common.GetTimestamp(),
+		Type:      LogTypeSystem,
+		Other:     common.MapToJsonStr(other),
+	}
+	if err := LOG_DB.Create(log).Error; err != nil {
+		common.SysLog("failed to record system log: " + err.Error())
+	}
+}
+
+func RecordInviteRewardLog(userId int, action string, quota int) {
+	other := map[string]interface{}{
+		"event":  InviteRewardEvent,
+		"action": action,
+		"quota":  quota,
+	}
+	RecordSystemLogWithOther(userId, other)
+}
+
+func RecordRegistrationRewardLog(userId int, action string, quota int) {
+	other := map[string]interface{}{
+		"event":  RegistrationRewardEvent,
+		"action": action,
+		"quota":  quota,
+	}
+	RecordSystemLogWithOther(userId, other)
 }
 
 // RecordLogWithAdminInfo 记录操作日志，并将管理员相关信息存入 Other.admin_info，

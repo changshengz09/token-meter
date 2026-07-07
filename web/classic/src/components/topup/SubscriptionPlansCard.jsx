@@ -690,7 +690,7 @@ const SubscriptionPlansCard = ({
                     className={`!rounded-xl transition-all hover:shadow-lg w-full h-full ${
                       isPopular ? 'ring-2 ring-purple-500 !overflow-visible' : ''
                     }`}
-                    bodyStyle={{ padding: 0 }}
+                    bodyStyle={{ padding: 0, height: '100%' }}
                   >
                     <div className='p-4 h-full flex flex-col relative overflow-visible'>
                       {/* 推荐标签 */}

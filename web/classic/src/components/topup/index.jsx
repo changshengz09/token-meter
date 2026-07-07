@@ -30,6 +30,10 @@ import {
   getQuotaPerUnit,
   convertUSDToCurrency,
 } from '../../helpers';
+import {
+  quotaToDisplayAmount,
+  displayAmountToQuota,
+} from '../../helpers/quota';
 import { Modal, Toast } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../../context/User';
@@ -762,12 +766,24 @@ const TopUp = () => {
 
   // 划转邀请额度
   const transfer = async () => {
-    if (transferAmount < getQuotaPerUnit()) {
+    const minTransferAmount = quotaToDisplayAmount(getQuotaPerUnit());
+    const maxTransferAmount = quotaToDisplayAmount(
+      userState?.user?.aff_quota || 0,
+    );
+    if (!transferAmount || transferAmount <= 0) {
+      showError(t('划转金额必须大于0'));
+      return;
+    }
+    if (transferAmount > maxTransferAmount) {
+      showError(t('划转金额不能超过可用邀请额度'));
+      return;
+    }
+    if (transferAmount < minTransferAmount) {
       showError(t('划转金额最低为') + ' ' + renderQuota(getQuotaPerUnit()));
       return;
     }
     const res = await API.post(`/api/user/aff_transfer`, {
-      quota: transferAmount,
+      quota: displayAmountToQuota(transferAmount),
     });
     const { success, message } = res.data;
     if (success) {
@@ -797,7 +813,7 @@ const TopUp = () => {
   useEffect(() => {
     // 始终获取最新用户数据，确保余额等统计信息准确
     getUserQuota().then();
-    setTransferAmount(getQuotaPerUnit());
+    setTransferAmount(quotaToDisplayAmount(getQuotaPerUnit()));
   }, []);
 
   useEffect(() => {

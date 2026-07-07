@@ -441,6 +441,51 @@ const TOPUP_EVENT_TEMPLATE_KEYS = {
     '使用余额购买订阅成功，套餐: {{plan}}，支付金额: {{money}}，扣除额度: {{quota}}',
 };
 
+const REGISTRATION_REWARD_EVENT_TEMPLATE_KEYS = {
+  new_user_gift: '新用户注册赠送 {{quota}}',
+};
+
+// 从注册赠送日志的结构化事件渲染本地化详情文案，无 event 时返回 null。
+function getRegistrationRewardLogDetailText(record, t) {
+  if (record?.type !== 4) {
+    return null;
+  }
+  const other = getLogOther(record.other);
+  if (!other || other?.event !== 'registration_reward') {
+    return null;
+  }
+  const templateKey = REGISTRATION_REWARD_EVENT_TEMPLATE_KEYS[other?.action];
+  if (!templateKey) {
+    return null;
+  }
+  return t(templateKey, {
+    quota: other?.quota != null ? renderQuota(other.quota, 6) : '',
+  });
+}
+
+const INVITE_REWARD_EVENT_TEMPLATE_KEYS = {
+  invitee_bonus: '使用邀请码赠送 {{quota}}',
+  inviter_bonus: '邀请用户赠送 {{quota}}',
+};
+
+// 从邀请码奖励日志的结构化事件渲染本地化详情文案，无 event 时返回 null。
+function getInviteRewardLogDetailText(record, t) {
+  if (record?.type !== 4) {
+    return null;
+  }
+  const other = getLogOther(record.other);
+  if (!other || other?.event !== 'invite_reward') {
+    return null;
+  }
+  const templateKey = INVITE_REWARD_EVENT_TEMPLATE_KEYS[other?.action];
+  if (!templateKey) {
+    return null;
+  }
+  return t(templateKey, {
+    quota: other?.quota != null ? renderQuota(other.quota, 6) : '',
+  });
+}
+
 // 从充值/订阅日志的结构化 meta 渲染本地化详情文案，无 meta 时返回 null。
 function getTopupLogDetailText(record, t, language) {
   if (record?.type !== 1) {
@@ -966,7 +1011,10 @@ export const getLogsColumns = ({
         if (!detailSummary) {
           // 充值/订阅日志：优先使用结构化 meta 渲染的本地化文案
           const displayText =
-            getTopupLogDetailText(record, t, language) ?? text;
+            getRegistrationRewardLogDetailText(record, t) ??
+            getInviteRewardLogDetailText(record, t) ??
+            getTopupLogDetailText(record, t, language) ??
+            text;
           return (
             <Typography.Paragraph
               ellipsis={{
